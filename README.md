@@ -21,17 +21,17 @@ heka项目地址
 
 以 heka-0_10_0-linux-amd64.tar.gz 为例
 
-'''
+```
 mkdir /apps  
 cd /apps  
 wget https://github.com/mozilla-services/heka/releases/download/v0.10.0/heka-0_10_0-linux-amd64.tar.gz  
 tar -xzvf heka-0_10_0-linux-amd64.tar.gz  
 cd heka-0_10_0-linux-amd64/bin  
-'''
+```
 
 创建 heka.toml 配置文件
 
-'''
+```
 [TcpInput]
 address = ":514"
 
@@ -45,5 +45,5 @@ append_newlines = false
 [LogOutput]
 message_matcher = "TRUE"
 encoder = "PayloadEncoder"
-'''
+```
 
