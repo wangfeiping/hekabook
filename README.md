@@ -13,7 +13,17 @@ heka项目地址
 
 * https://github.com/mozilla-services/heka
 
-### 安装 heka
+# 快速入门
+
+### 源码编译安装
+
+在 CentOS-6.6-x86_64-minimal.iso 虚拟机中使用 Go 1.6 和 heka 0.10.0 编译成功，
+但是运行时如果配置了 lua sandbox 的插件就会报错，原因好像是 Go 1.6 建议不要在 Go 调用 C 库时传递指针，所以运行时报错了。
+看 heka 的issue中说好像修改编译配置，可以忽略这个问题。
+
+编译安装等以后进一步研究项目源码时再研究和补充文档吧。
+
+### 安装包安装 heka
 
 官方参考文档：http://hekad.readthedocs.org/en/v0.10.0/
 
@@ -26,10 +36,9 @@ mkdir /apps
 cd /apps  
 wget https://github.com/mozilla-services/heka/releases/download/v0.10.0/heka-0_10_0-linux-amd64.tar.gz  
 tar -xzvf heka-0_10_0-linux-amd64.tar.gz  
-cd heka-0_10_0-linux-amd64/bin  
 ```
 
-创建 heka.toml 配置文件
+在 heka-0_10_0-linux-amd64/bin 路径下创建 heka.toml 配置文件
 
 ```
 [TcpInput]
@@ -47,3 +56,64 @@ message_matcher = "TRUE"
 encoder = "PayloadEncoder"
 ```
 
+使用如下命令可以启动 heka，当然这只是为了测试，并不是后台服务（守护进程）的方式，后台服务方式在后面说明。
+
+```
+cd heka-0_10_0-linux-amd64/bin
+./hekad -config heka.toml
+```
+
+使用如下命令可以分别以 tcp 和 udp 协议发送文本内容到指定地址和端口。
+其中参数 "-u" 即为指定使用 udp 协议：
+
+```
+nc 172.17.3.180 514
+nc 172.17.3.180 514 -u
+```
+
+运行 nc 程序后，输入文本并按回车键，即可发送数据，在 heka 输出中就应该可以看到接收到的数据内容。
+
+nc 测试端输入：
+
+```
+nc 172.17.3.180 514 -u
+test
+
+```
+
+heka 启动信息，最后一行为接收到的测试数据。
+
+```
+2016/04/08 11:36:57 Pre-loading: [TcpInput]
+2016/04/08 11:36:57 Pre-loading: [UdpInput]
+2016/04/08 11:36:57 Pre-loading: [PayloadEncoder]
+2016/04/08 11:36:57 Pre-loading: [LogOutput]
+2016/04/08 11:36:57 Pre-loading: [ProtobufDecoder]
+2016/04/08 11:36:57 Loading: [ProtobufDecoder]
+2016/04/08 11:36:57 Pre-loading: [ProtobufEncoder]
+2016/04/08 11:36:57 Loading: [ProtobufEncoder]
+2016/04/08 11:36:57 Pre-loading: [TokenSplitter]
+2016/04/08 11:36:57 Loading: [TokenSplitter]
+2016/04/08 11:36:57 Pre-loading: [HekaFramingSplitter]
+2016/04/08 11:36:57 Loading: [HekaFramingSplitter]
+2016/04/08 11:36:57 Pre-loading: [NullSplitter]
+2016/04/08 11:36:57 Loading: [NullSplitter]
+2016/04/08 11:36:57 Loading: [PayloadEncoder]
+2016/04/08 11:36:57 Loading: [TcpInput]
+2016/04/08 11:36:57 Loading: [UdpInput]
+2016/04/08 11:36:57 Loading: [LogOutput]
+2016/04/08 11:36:57 Starting hekad...
+2016/04/08 11:36:57 Output started: LogOutput
+2016/04/08 11:36:57 MessageRouter started.
+2016/04/08 11:36:57 Input started: TcpInput
+2016/04/08 11:36:57 Input started: UdpInput
+2016/04/08 11:37:00 test
+
+```
+
+这个配置并不能完全正常的运行，虽然 udp 可以正常接收到发送的文本数据，tcp 却完全没有任何反应，似乎没有接收到任何数据，
+但是当测试客户端退出 nc 程序时，hekad 却又会输出一条日志说 tcp 的链接断开了，这说明 nc 和 heka 应该是正常建立 tcp 连接。
+
+```
+2016/04/08 11:37:14 Decoder 'TcpInput-ProtobufDecoder-172.17.3.180': stopped
+```
