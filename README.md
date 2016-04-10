@@ -158,7 +158,7 @@ encoder = "PayloadEncoder"
 后台运行，可以使用如下命令
 
 ```
-nohup ./hekad -config heka.toml &l
+nohup ./hekad -config heka.toml &
 ```
 
 不过这种方式并不方便，首先每次启动要么进入安装路径：
@@ -183,4 +183,33 @@ kill -QUIT $pid
 
 最好的方式当然还是通过 service 启动或重启 hekad。
 
-`
+参考文档：https://github.com/mozilla-services/heka/wiki/Sample--etc-init.d-hekad-file
+
+本项目中的 conf/etc/init.d/hekad 就是根据上面的参考创建的脚本文件，在系统文件路径 /etc/init.d/ 创建该脚本。
+并需要安装一个软件"daemon"，http://libslack.org/daemon/：
+
+```
+curl -O http://libslack.org/daemon/download/daemon-0.6.4.tar.gz
+tar -xzvf daemon-0.6.4.tar.gz
+cd daemon-0.6.4
+./config
+make
+make install
+```
+
+然后执行如下命令，安装 service 服务：
+
+```
+chmod a+x /etc/init.d/hekad
+chkconfig --add hekad
+```
+
+命令执行成功后，就可以通过 service，启动、停止或重启、查询 hekad 了：
+
+```
+service hekad start
+service hekad stop
+service hekad restart
+service hekad status
+```
+
