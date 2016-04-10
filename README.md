@@ -38,7 +38,11 @@ wget https://github.com/mozilla-services/heka/releases/download/v0.10.0/heka-0_1
 tar -xzvf heka-0_10_0-linux-amd64.tar.gz  
 ```
 
+### 配置并运行服务
+
 在 heka-0_10_0-linux-amd64/bin 路径下创建 heka.toml 配置文件
+
+这个配置并不能完全正常的运行，虽然 udp 可以正常接收到发送的文本数据，tcp 却完全没有任何反应，似乎没有接收到任何数据。
 
 ```
 [TcpInput]
@@ -111,9 +115,72 @@ heka 启动信息，最后一行为接收到的测试数据。
 
 ```
 
-这个配置并不能完全正常的运行，虽然 udp 可以正常接收到发送的文本数据，tcp 却完全没有任何反应，似乎没有接收到任何数据，
-但是当测试客户端退出 nc 程序时，hekad 却又会输出一条日志说 tcp 的链接断开了，这说明 nc 和 heka 应该是正常建立 tcp 连接。
+虽然 tcp 完全没有任何反应，hekad 没有输出任何数据，
+但是当测试客户端退出 nc 程序时，hekad 却又会输出一条日志说 tcp 的链接断开了，这说明 nc 和 heka 应该是正常建立了 tcp 连接。
 
 ```
 2016/04/08 11:37:14 Decoder 'TcpInput-ProtobufDecoder-172.17.3.180': stopped
 ```
+
+按照如下配置修改文件 heka.toml，并重启 heka 服务，tcp 协议的监听端口可以正常运行。
+
+```
+[newline_splitter]
+type = "TokenSplitter"
+delimiter = '\n'
+
+[prdecoder]
+type = "PayloadRegexDecoder"
+match_regex = '(\S*\n)'
+
+[TcpInput]
+address = ":514"
+splitter = "newline_splitter"
+decoder = "prdecoder"
+use_tls = false
+
+[UdpInput]
+address = ":514"
+
+[PayloadEncoder]
+append_newlines = true
+
+[LogOutput]
+message_matcher = "TRUE"
+encoder = "PayloadEncoder"
+```
+
+从配置上推断，tcp 需要分割器(splitter)和解码器(decoder)，可能是由于 tcp 会建立和保持连接，数据是流式的，因此需要分割和解码才能获取正确的数据。
+不过奇怪的是，查看文档，tcp 是有默认配置的，不知道这个默认配置需要如何工作，这个需要放在以后深入学习时继续研究了。
+
+### 后台运行
+
+后台运行，可以使用如下命令
+
+```
+nohup ./hekad -config heka.toml &l
+```
+
+不过这种方式并不方便，首先每次启动要么进入安装路径：
+
+```
+cd /apps/heka-0_10_0-linux-amd64/bin
+./hekad -config heka.toml
+```
+
+或者启动命令输入完整路径：
+
+```
+/apps/heka-0_10_0-linux-amd64/bin/hekad -config /apps/heka-0_10_0-linux-amd64/bin/heka.toml
+```
+
+另外，关闭和重启时还要查询 pid 通过 kill 关闭 hekad，并使用上面的方式重新启动 hekad：
+
+```
+ps -ef | grep hekad
+kill -QUIT $pid
+```
+
+最好的方式当然还是通过 service 启动或重启 hekad。
+
+`
