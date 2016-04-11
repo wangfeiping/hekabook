@@ -14,14 +14,6 @@ heka项目地址
 * https://github.com/mozilla-services/heka
 
 # 快速入门
-# 工具集简介
-# 使用Lua开发插件
-# 编译安装
-# 使用Go开发插件
-# 架构分析
-# 源码分析
-
-# 快速入门
 
 ### 源码编译安装
 
@@ -220,3 +212,13 @@ service hekad stop
 service hekad restart
 service hekad status
 ```
+
+### [首页](../README.md "首页")
+### 快速入门
+### 工具集简介
+### 使用Lua开发插件
+### 编译安装
+### 使用Go开发插件
+### 架构分析
+### 源码分析
+
