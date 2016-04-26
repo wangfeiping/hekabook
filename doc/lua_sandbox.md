@@ -15,9 +15,31 @@ heka项目地址
 
 # 使用Lua开发插件
 
+### 系统时间
+
+lua sandbox 开发过程中，所有获取的时间都是格林威治时间，目前没有找到相关配置，也还没有查看相关源码。
+为了正确获取当前系统的本地时间，临时解决办法就是直接加上8个小时。
+
+获取时间的方法包括：
+```
+os.time()
+os.date()
+io.popen() -- 通过系统调用 api 查询 文件更新时间；
+os.execute() -- 通过系统调用 api 获取系统时间
+```
+
 ### filter
 
+在使用lua开发 filter 时，不允许使用任何的 io，网络或文件操作都不允许，会在启动初始化时就报错。
+```
+ Initialization failed for XXXXXXXXX XXXXX XXXX XXXXXXXX: module 'io' disabled
+```
+
+因此即使是想要记录一些 lua 开发的 filter 插件运行时的信息（如：统计数据，运行时错误)，也需要使用 output 插件来输出。
+ 
 ### output
+
+### lua 语言性能调优
 
 ### [首页](../README.md "首页")
 ### [快速入门](./getting_started.md "快速入门")
