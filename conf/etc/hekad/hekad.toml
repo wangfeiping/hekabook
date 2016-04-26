@@ -1,0 +1,31 @@
+[hekad]
+maxprocs = 1
+base_dir = "/etc/hekad/"
+share_dir = "/apps/workspace/heka/build/heka/share"
+
+[UdpInput]
+address = ":514"
+splitter = "" # 或 "NullSplitter"
+
+[LogFilter]
+type = "SandboxFilter"
+filename = "filter.lua"
+ticker_interval = 1
+message_matcher = "Logger == 'UdpInput'"
+output_limit = 65600
+
+[PayloadEncoder]
+append_newlines = false
+
+[LogOutput]
+message_matcher = "TRUE"
+encoder = "PayloadEncoder"
+
+[FileOutput]
+type = "FileOutput"
+message_matcher = "Fields[payload_name]=='hekadlog'"
+path = "/apps/workspace/heka/build/heka/logs/hekad.log"
+perm = "666"
+flush_count = 10000
+flush_operator = "OR"
+encoder = "PayloadEncoder"

@@ -10,11 +10,14 @@ git checkout v0.10.0
 
 vi /etc/profile
 export GOPATH=/apps/gopath
-export PATH=/apps/go/bin:$PATH
+export GOROOT=/apps/go
+export GOBIN=$GOROOT/bin
+export GOARCH=amd64
+export GOOS=linux
+export PATH=.:$PATH:$GOBIN
 
 cd heka/
 ./build.sh
-
 
 编译报错
 ```
@@ -54,10 +57,13 @@ export GOBIN=$GOPATH/bin
 export PATH=$GOBIN:$PATH
 
 ```
-很奇怪为什么 GOBIN 要配置为 $GOPATH/bin ？
-修改该行：
+很奇怪为什么 GOBIN 要配置为 $GOPATH/bin ？  
+后来才发现，hekad编译后生成的可执行程序都生成在 GOBIN 指定的路径下，  
+另外也很奇怪明明在 /etc/profile 的 PATH 参数中配置了 Go 的 bin 路径，为什么还说找不到？
+
+修改最后一行：
 ```
-export GOBIN=/apps/go/bin
+export PATH=$GOBIN:/apps/go/bin:$PATH
 ```
 
 之后重新编译：
@@ -67,60 +73,7 @@ export GOBIN=/apps/go/bin
 
 编译成功
 ```
-[  4%] Built target go-simplejson
-[  7%] Built target protobuf
-[ 11%] Built target xmlpath
-[ 15%] Built target raw
-[ 19%] Built target slices
-[ 23%] Built target sets
-[ 27%] Built target go-dockerclient
-[ 30%] Built target toml
-[ 33%] Built target go-ircevent
-[ 37%] Built target raven-go
-[ 40%] Built target heka-mozsvc-plugins
-[ 43%] Built target amqp
-[ 47%] Built target snappy
-[ 51%] Built target gomock
-[ 55%] Built target whisper-go
-[ 59%] Built target go-notify
-[ 63%] Built target uuid
-[ 66%] Built target goamz
-[ 70%] Built target g2s
-[ 74%] Built target gostrftime
-[ 78%] Built target gospec
-[ 81%] Built target sarama
-[ 81%] Built target GoPackages
-[ 85%] Built target lua_sandbox
-[ 86%] Built target heka_source
-[ 86%] Built target message_matcher_parser
-[ 86%] Built mock_pluginhelper_test.go
-[ 86%] Built mock_pluginrunner_test.go
-[ 87%] Built mock_decoder_test.go
-[ 87%] Built mock_decoderrunner_test.go
-[ 88%] Built mock_inputrunner_test.go
-[ 88%] Built mock_filterrunner_test.go
-[ 89%] Built mock_outputrunner_test.go
-[ 89%] Built mock_input_test.go
-[ 90%] Built mock_stataccumulator_test.go
-[ 90%] Built mock_deliverer_test.go
-[ 91%] Built mock_splitterrunner_test.go
-[ 91%] Built mock_pluginhelper.go
-[ 92%] Built mock_filterrunner.go
-[ 92%] Built mock_decoderrunner.go
-[ 93%] Built mock_outputrunner.go
-[ 93%] Built mock_inputrunner.go
-[ 93%] Built mock_decoder.go
-[ 94%] Built mock_stataccumulator.go
-[ 94%] Built mock_deliverer.go
-[ 95%] Built mock_splitterrunner.go
-[ 95%] Built mock_net_conn.go
-[ 96%] Built mock_net_listener.go
-[ 96%] Built mock_net_error.go
-[ 97%] Built mock_whisperrunner_test.go
-[ 97%] Built mock_amqpconnection_test.go
-[ 98%] Built mock_amqpchannel_test.go
-[ 98%] Built mock_amqpconnectionhub_test.go
-[100%] Built mock_amqp_acknowledger.go
+......
 [100%] Built target mocks
 Scanning dependencies of target hekad
 [100%] Built target hekad
@@ -137,3 +90,34 @@ Scanning dependencies of target sbmgr
 Scanning dependencies of target sbmgrload
 [100%] Built target sbmgrload
 ```
+
+在 heka/bin 目录下生成了可执行程序
+```
+heka-cat
+hekad
+heka-flood
+heka-inject
+heka-logstreamer
+heka-sbmgr
+heka-sbmgrload
+mockgen
+protoc-gen-gogo
+```
+
+### 运行
+
+复制 lua 第三方包，安装包中 lua 第三方包是在 share/heka/lua_io_modules/ 路径下，不知为什么编译包中则出现在 lib/luasandbox/io_modules/ 路径下。
+cp -r ../lib/luasandbox/io_modules/ ./share/lua_modules
+
+如果使用的是 Go 1.6编译安装，使用 lua_sandbox 时，启动会报错。
+```
+panic: runtime error: cgo argument has Go pointer to Go pointer
+```
+
+GODEBUG=cgocheck=0 ./bin/hekad -config /etc/hekad/hekad.toml
+
+发送测试数据
+nc -u 127.0.0.1 514
+
+查看 hekad 日志
+tail -f hekad.log
