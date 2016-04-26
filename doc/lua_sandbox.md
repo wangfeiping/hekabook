@@ -13,9 +13,16 @@ heka项目地址
 
 * https://github.com/mozilla-services/heka
 
-### [快速入门](doc/getting_started.md "快速入门")
-### [相关工具](doc/tools.md "相关工具")
-### [使用Lua开发插件](doc/lua_sandbox.md "使用Lua开发插件")
+# 使用Lua开发插件
+
+### filter
+
+### output
+
+### [首页](../README.md "首页")
+### [快速入门](./getting_started.md "快速入门")
+### [相关工具](./tools.md "相关工具")
+### [使用Lua开发插件](./lua_sandbox.md "使用Lua开发插件")
 ### 编译安装
 ### 使用Go开发插件
 ### 架构分析
