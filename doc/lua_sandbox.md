@@ -30,13 +30,27 @@ os.execute() -- 通过系统调用 api 获取系统时间
 
 ### filter
 
++ 禁用 'io'
+
 在使用lua开发 filter 时，不允许使用任何的 io，网络或文件操作都不允许，会在启动初始化时就报错。
 ```
- Initialization failed for XXXXXXXXX XXXXX XXXX XXXXXXXX: module 'io' disabled
+ Initialization failed for XXXXXX: module 'io' disabled
 ```
 
 因此即使是想要记录一些 lua 开发的 filter 插件运行时的信息（如：统计数据，运行时错误)，也需要使用 output 插件来输出。
- 
+
++ 单条数据缓存
+
+运行时，lua filter 会由于数据包太大停止运行，需要调整相应的缓存大小：
+```
+[log_filter]
+type = "SandboxFilter"
+filename = "log_filter.lua"
+ticker_interval = 1
+message_matcher = "Logger == 'log_input'"
+output_limit = 65600
+```
+
 ### output
 
 ### lua 语言性能调优
