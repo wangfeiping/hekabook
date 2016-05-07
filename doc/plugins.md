@@ -38,9 +38,26 @@ Heka 插件有六种：
 插件日志处理流程
 
 ```
-[data] -> [输入器] -> [分割器] -> [解码器] -> [过滤器] -> [编码器] -> [输出器]
+[数据]=>[输入器/Inputs]=>[分割器/Splitters]=>[解码器/Decoders]=>[过滤器/Filters]=>[编码器/Encoders]=>[输出器/Outputs]
 ```
 
+输入器/Inputs
+
+Inputs 插件从外界获取数据，并注入 Heka 管道(pipeline)。插件可以通过多种方式获取数据：从文件系统读取文件；通过网络主动连接远程服务器获取数据；监听网络，接收外部推送数据，触发本地系统进程收集数据或运行其他处理机制。
+Inputs 插件必须用Go开发。
+
+分割器/Splitters
+
+Splitters 插件接收 Inputs 插件获取的数据并将这些数据分割成单个记录。
+Splitters 插件必须用Go开发。
+
+解码器/Decoders
+
+过滤器/Filters
+
+编码器/Encoders
+
+输出器/Outputs
 
 ### [首页](../README.md "首页")
 ### [快速入门](./getting_started.md "快速入门")
