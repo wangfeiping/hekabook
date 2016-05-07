@@ -18,26 +18,14 @@ Heka 项目地址
 
 Heka 的自有插件还是相当丰富的，包括可以直接配置使用的Go开发的插件，以及Lua 开发实现的 Sandbox插件。
 
-为了介绍更准确，介绍部分直接引用原文文档并翻译为中文。
+为了介绍更准确，介绍部分直接将原文文档翻译为中文。
 
 [Heka 文档：http://hekad.readthedocs.org/](http://hekad.readthedocs.org/ "Heka 文档")
 
 编写本文档时是基于 v0.10.0 版本，文档实际访问的地址是 http://hekad.readthedocs.io/en/v0.10.0/
 
-```
-Heka is a heavily plugin based system. Common operations such as adding data to Heka, processing it, and writing it out are implemented as plugins. Heka ships with numerous plugins for performing common tasks.
-```
 Heka 提供的服务是非常依赖于插件的。例如向 Heka 输入数据、在 Heka 中处理数据以及最终从 Heka 输出数据都需要通过不同插件来实现。Heka 附带了许多插件用于完成这些常见任务。
 
-```
-There are six different types of Heka plugins:
-Inputs
-Splitters
-Decoders
-Filters
-Encoders
-Outputs
-```
 Heka 插件有六种：
 
 + 输入器
@@ -47,11 +35,11 @@ Heka 插件有六种：
 + 编码器
 + 输出器
 
+插件日志处理流程
 
-
-
-### 插件日志处理流程
-
+```
+[data] -> [输入器] -> [分割器] -> [解码器] -> [过滤器] -> [编码器] -> [输出器]
+```
 
 
 ### [首页](../README.md "首页")
