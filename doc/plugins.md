@@ -35,33 +35,47 @@ Heka 插件有六种：
 + 编码器
 + 输出器
 
-插件日志处理流程
+### 插件日志处理流程
 
 ```
 [数据]=>[输入器/Inputs]=>[分割器/Splitters]=>[解码器/Decoders]=>[过滤器/Filters]=>[编码器/Encoders]=>[输出器/Outputs]
 ```
 
-输入器/Inputs
+### 输入器/Inputs
 
 Inputs 插件从外界获取数据，并注入 Heka 管道(pipeline)。插件可以通过多种方式获取数据：从文件系统读取文件；通过网络主动连接远程服务器获取数据；监听网络，接收外部推送数据，触发本地系统进程收集数据或运行其他处理机制。  
 Inputs 插件必须用Go开发。
 
-分割器/Splitters
+### 分割器/Splitters
 
 Splitters 插件接收 Inputs 插件获取的数据并将这些数据分割成单个记录。  
 Splitters 插件必须用Go开发。
 
-解码器/Decoders
+### 解码器/Decoders
 
 Decoders 插件将 Inputs 插件获取的数据转换为 Heka 内部数据结构。Decoders 通常负责解析、 反序列化，或提取非结构化数据的结构，
 即将不可用的非结构化数据解码转换为可用于处理的结构化数据。  
 Decoders 插件可以完全用Go开发，也可以用 Lua在沙盒(Sandbox)中实现核心逻辑。
 
-过滤器/Filters
+### 过滤器/Filters
 
-编码器/Encoders
+Filters 插件是 Heka 的处理引擎。Filters 插件可配置用于接收匹配指定特征(使用 Heka 消息匹配语法)的消息并能够执行监测、 聚合等数据的处理。Filters 插件也能够生成新的消息，并注入 Heka 管道，例如包含聚合数据的摘要消息，发现可疑异常的通知消息，或是将显示在 Heka 控制台实时监控图中的循环缓存数据(circular buffer data)消息。  
+Filters 插件可以完全用Go开发，也可以用 Lua在沙盒(Sandbox)中实现核心逻辑。可以配置 Heka 允许 Lua Filters 插件动态注入到 Heka 的运行实例中，而无需重新配置或重新启动 Heka 进程，甚至不需要通过 shell 访问 Heka 运行的服务器。
 
-输出器/Outputs
+### 编码器/Encoders
+
+Encoders 插件与 Decoders 插件正好相反。插件从 Heka 消息结构中提取数据并生成任意字节流数据。Encoders 插件被嵌入在 Outputs 插件中；Encoders 插件处理序列化，Outputs 插件则负责处理与外界交互的具体细节。  
+Encoders 插件可以完全用Go开发，也可以用 Lua在沙盒(Sandbox)中实现核心逻辑。
+
+### 输出器/Outputs
+
+Outputs 插件将 Encoders 插件序列化的数据发送到 Heka 外部目标。他们处理与网络、 文件系统或任何其他外部资源进行交互的所有细节。和 Filters 插件一样，Outputs 插件可以配置使用 Heka 消息匹配语法，因此可以只接收和发送匹配指定特征的消息。  
+Outputs 插件必须用Go开发。
+
+注：可能是文档与项目并不完全同步？至少我在实际的项目中是开发并使用了基于 Lua Sandbox 的 Outputs 插件的。
+会在“[使用Lua开发插件](./lua_sandbox.md "使用Lua开发插件")”中详细介绍。
+
+
 
 ### [首页](../README.md "首页")
 ### [快速入门](./getting_started.md "快速入门")
