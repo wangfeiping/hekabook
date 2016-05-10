@@ -75,7 +75,18 @@ Outputs 插件必须用Go开发。
 注：可能是文档与项目并不完全同步？至少我在实际的项目中是开发并使用了基于 Lua Sandbox 的 Outputs 插件的。
 会在“[使用Lua开发插件](./lua_sandbox.md "使用Lua开发插件")”中详细介绍。
 
+### AMQP Input
 
+从名字猜就是某种消息队列的输入插件，由于没有接触过，简单搜索了解一下，希望以后有机会进一步学习。  
+发散一下，阅读学习的资料：  
+AMQP（高级消息队列协议）是一个异步消息传递所使用的应用层协议规范。作为线路层协议，而不是API（例如JMS2），AMQP客户端能够无视消息的来源任意发送和接受信息。现在，已经有相当一部分不同平台的服务器3和客户端可以投入使用4。  
+AMQP的原始用途只是为金融界提供一个可以彼此协作的消息协议，而现在的目标则是为通用消息队列架构提供通用构建工具。因此，面向消息的中间件（MOM）系统，例如发布/订阅队列，没有作为基本元素实现。反而通过发送简化的AMQ实体，用户被赋予了构建例如这些实体的能力。这些实体也是规范的一部分，形成了在线路层协议顶端的一个层级：AMQP模型。这个模型统一了消息模式，诸如之前提到的发布/订阅，队列，事务以及流数据，并且添加了额外的特性，例如更易于扩展，基于内容的路由。  
+
+[AMQP和RabbitMQ入门](http://www.infoq.com/cn/articles/AMQP-RabbitMQ "AMQP和RabbitMQ入门")
+
+[RabbitMQ, ZeroMQ, Kafka](http://www.zhihu.com/question/22480085 "RabbitMQ, ZeroMQ, Kafka")
+
+[RabbitMQ和Kafka](http://my.oschina.net/u/236698/blog/501834?utm_source=tuicool&utm_medium=referral "RabbitMQ和Kafka")
 
 ### [首页](../README.md "首页")
 ### [快速入门](./getting_started.md "快速入门")
