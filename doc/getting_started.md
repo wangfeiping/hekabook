@@ -1,15 +1,16 @@
-# hekabook 开源学习手册
+# Heka 非权威指南
 
-### ------ 源码研究，配置管理，插件开发。
+Hekabook 开源学习手册：  
+源码研究，配置管理，插件开发，发散式学习！
 
 ### 项目地址
 
-本项目地址
+Hekabook 项目地址
 
 * https://github.com/wangfeiping/hekabook
 * https://coding.net/u/wangfeiping/p/hekabook/git
 
-heka项目地址
+Heka 项目地址
 
 * https://github.com/mozilla-services/heka
 
@@ -19,9 +20,9 @@ heka项目地址
 
 在 CentOS-6.6-x86_64-minimal.iso 虚拟机中使用 Go 1.6 和 heka 0.10.0 编译成功，
 但是运行时如果配置了 lua sandbox 的插件就会报错，原因好像是 Go 1.6 建议不要在 Go 调用 C 库时传递指针，所以运行时报错了。
-看 heka 的issue中说好像修改编译配置，可以忽略这个问题。
+看 heka 的issue中说编译后启动运行时可以通过命令行参数屏蔽这项检查从而忽略这个问题。
 
-编译安装等以后进一步研究项目源码时再研究和补充文档吧。
+编译安装等以后进一步研究项目源码时再研究和补充文档。
 
 ### 安装包安装 heka
 
@@ -214,11 +215,13 @@ service hekad status
 ```
 
 ### [首页](../README.md "首页")
-### 快速入门
-### 工具集简介
+### [快速入门](./getting_started.md "快速入门")
+### [自有插件](./plugins.md "自有插件")
+### 相关工具
 ### 使用Lua开发插件
 ### 编译安装
 ### 使用Go开发插件
 ### 架构分析
 ### 源码分析
+### 尝试：如何设计一个每秒处理10万条的日志服务？
 
