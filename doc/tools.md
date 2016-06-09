@@ -17,7 +17,7 @@ heka项目地址
 
 ### 自带工具集
 
-+ heka-flood
+### heka-flood
 
 Heka压力测试工具。能够通过配置文件按照不同周期，协议，消息类型，单条消息大小等生成大量消息数据测试 Heka服务。
 
@@ -27,7 +27,7 @@ heka-flood -config="./flood.toml" -test="test_name"
 ```
 [flood.toml示例配置文件](https://github.com/mozilla-services/heka/blob/master/cmd/heka-flood/flood.toml "flood.toml示例配置文件")
 
-+ heka-inject
+### heka-inject
 
 于版本 0.5新增。
 
@@ -43,7 +43,7 @@ heka-flood -config="./flood.toml" -test="test_name"
 -severity: 消息级别/message severity
 -type: 消息类型/message type
 ```
-实际上 -heka选项参数可按照如下使用：
+-heka选项参数可指定访问的 Heka服务实例：
 ```
 heka-inject -heka 127.0.0.1:514 -payload="Test message with high severity." -severity=1
 ```
