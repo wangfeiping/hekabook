@@ -16,8 +16,8 @@ Heka 项目地址
 
 ### [快速入门](doc/getting_started.md "快速入门")
 ### [自有插件](doc/plugins.md "自有插件")
-### [相关工具](doc/tools.md "相关工具")
-### [使用Lua开发插件](doc/lua_sandbox.md "使用Lua开发插件")
+### 相关工具
+### 使用Lua开发插件
 ### 编译安装
 ### 使用Go开发插件
 ### 架构分析
