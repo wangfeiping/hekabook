@@ -141,13 +141,82 @@ encoder = "PayloadEncoder"
 
 否则经常会碰到某些数据文档示例中就是简单的使用，但是根本不知道这个数据是怎么产生的，也不知道应该去哪里设置或查询。我感觉这是我学习 Heka 和阅读 Heka 文档的最大难点。
 
+示例如下。
+
 ### UdpInput
 
 以UDP协议监听指定端口。
 
+示例如下。
+
 ### TcpInput
 
 以TCP协议监听指定端口。
+
+示例如下：
+```
+[tsplitter]
+type = "TokenSplitter"
+delimiter = '\n'
+
+[prdecoder]
+type = "PayloadRegexDecoder"
+match_regex = '(\S*)'
+
+[TcpInput]
+address = ":514"
+splitter = "tsplitter"
+decoder = "prdecoder"
+use_tls = false
+
+[UdpInput]
+address = ":514"
+
+[RstEncoder]
+
+[LogOutput]
+message_matcher = "TRUE"
+encoder = "RstEncoder"
+```
+显示大致这样的启动信息后
+```
+2016/06/09 13:22:37 Loading: [RstEncoder]
+2016/06/09 13:22:37 Loading: [tsplitter]
+2016/06/09 13:22:37 Loading: [TcpInput]
+2016/06/09 13:22:37 Loading: [UdpInput]
+2016/06/09 13:22:37 Loading: [LogOutput]
+2016/06/09 13:22:37 Starting hekad...
+2016/06/09 13:22:37 Output started: LogOutput
+2016/06/09 13:22:37 MessageRouter started.
+2016/06/09 13:22:37 Input started: TcpInput
+2016/06/09 13:22:37 Input started: UdpInput
+```
+使用nc可以在shell中进行测试：
+```
+Tcp:
+nc 127.0.0.1 514
+Udp:
+nc 127.0.0.1 514 -u
+```
+输入命令并按“回车"键之后即可向指定IP地址和端口发送数据，只需要输入数据并再次按“回车”键即可：
+```
+> nc 127.0.0.1 514
+aaa
+```
+Heka由于配置了终端数据也会将接收到的数据显示出来，可以从中查看重要信息（如：Logger、Fields），以便于之后做进一步处理（比如日志分流过滤等等）：
+```
+2016/06/09 13:25:02 
+:Timestamp: 2016-06-09 05:25:02.130679266 +0000 UTC
+:Type: TcpInput
+:Hostname: 127.0.0.1:34927
+:Pid: 0
+:Uuid: f237c097-956c-4a83-adee-1e0324527354
+:Logger: TcpInput
+:Payload: aaa
+
+:EnvVersion: 
+:Severity: 7
+```
 
 ### KafkaOutput
 
