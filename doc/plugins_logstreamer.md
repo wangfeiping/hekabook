@@ -1,6 +1,6 @@
 # Logstreamer Input
 
-### [Logstreamer Input 原文文档](http://hekad.readthedocs.io/en/v0.10.0/config/inputs/logstreamer.html "Logstreamer Input 原文文档")
+### [Logstreamer Input 原文配置文档](http://hekad.readthedocs.io/en/v0.10.0/config/inputs/logstreamer.html "Logstreamer Input 原文配置文档")
 
 ### 原文翻译：
 
@@ -86,5 +86,7 @@ LogstreamerInput 插件能够扫描、排序和读取用户自定义的连续日
 
 ### 翻译词典：
 
+```
 tail - 持续读取
 logstream - 日志流
+```
