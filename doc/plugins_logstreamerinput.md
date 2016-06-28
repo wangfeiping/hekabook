@@ -22,37 +22,27 @@ hostname/主机名用于消息中，默认为部署机器的主机名。在机�
 
 + journal_directory (string):
 
+该配置路径用于存储已经读取文件的跟踪记录，默认为heka 的base 路径（可在heka 配置文件中配置base 路径：[hekad] -> base_dir）。
 
-
-
-    journal_directory (string):
-
-        The directory to store the journal files in for tracking the location that has been read to thus far. By default this is stored under heka’s base directory.
+经测试运行时会在该路径下创建一个logstreamer文件夹，并在该文件夹中针对heka 配置文件生成对应的跟踪记录文件。
 
 + log_directory (string):
 
-
-    log_directory (string):
-
-        The root directory to scan files from. This scan is recursive so it should be suitably restricted to the most specific directory this selection of logfiles will be matched under. The log_directory path will be prepended to the file_match.
+该配置为扫描文件的根路径，由于扫描是递归的，因此扫描将适当的局限在最具体的路径下匹配筛选文件。log_directory 配置的路径会被前置拼接到file_match 配置项上。
 
 + rescan_interval (int):
 
-    rescan_interval (int):
-
-        During logfile rotation, or if the logfile is not originally present on the system, this interval is how often the existence of the logfile will be checked for. The default of 5 seconds is usually fine. This interval is in milliseconds.
+在日志轮换备份期间，或日志文件原本在系统中不存在，heka 将会按照该项所配置的时间定时重复检查所需要的日志文件是否出现。默认值为5秒通常比较适用。该配置项单位为毫秒。
 
 + file_match (string):
 
-    file_match (string):
+通过在该项配置正则表达式，在log_directory 配置的路径下匹配筛选文件。所配置的正则表达式如果没有以$字符结尾则会自动在表达式末尾添加$字符，并且会将log_directory 作为前缀。
 
-        Regular expression used to match files located under the log_directory. This regular expression has $ added to the end automatically if not already present, and log_directory as the prefix. WARNING: file_match should typically be delimited with single quotes, indicating use of a raw string, rather than double quotes, which require all backslashes to be escaped. For example, ‘access\.log’ will work as expected, but “access\.log” will not, you would need “access\\.log” to achieve the same result.
+提醒：file_match 最好使用单引号来包含字符串，而尽量避免使用双引号，因为双引号要求必须将所有反斜杠转义。例如：'access\.log' 可以达到正确的预期效果，但是"access\.log"就不行，必须写为"access\\.log"才能实现相同结果。
 
 + priority (list of strings):
 
-    priority (list of strings):
-
-        When using sequential logstreams, the priority is how to sort the logfiles in order from oldest to newest.
+当使用持续的日志流时，该项用于日志文件从最老到最新的排序。
 
 + differentiator (list of strings):
 
@@ -89,4 +79,6 @@ LogstreamerInput 插件能够扫描、排序和读取用户自定义的连续日
 ```
 tail - 持续读取
 logstream - 日志流
+warning - 提醒
+rotation - 轮换备份
 ```
