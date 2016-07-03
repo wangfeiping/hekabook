@@ -216,7 +216,7 @@ service hekad status
 
 ### [首页](../README.md "首页")
 ### [快速入门](./getting_started.md "快速入门")
-### [自有插件](./plugins.md "自有插件")
+### [插件与配置](./plugins.md "插件与配置")
 ### 相关工具
 ### 使用Lua开发插件
 ### 编译安装
