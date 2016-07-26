@@ -46,15 +46,11 @@ hostname/主机名用于消息中，默认为部署机器的主机名。在机�
 
 + differentiator (list of strings):
 
-    differentiator (list of strings):
-
-        When using multiple logstreams, the differentiator is a set of strings that will be used in the naming of the logger, and portions that match a captured group from the file_match will have their matched value substituted in.
+使用多个日志流时，分流器（differentiator）可以配置为字符串集合，这个集合将用于组合日志记录器的名称，并且与file_match 配置项中配置的捕获组相同的部分，生成名称时也会被该捕获组匹配的值替换。
 
 + translation (hash map of hash maps of ints):
 
-    translation (hash map of hash maps of ints):
-
-        A set of translation mappings for matched groupings to the ints to use for sorting purposes.
+配置为一组可转换的映射表，以便于将匹配的一组值转换为用于排序的整形值。
 
 + splitter (string, optional):
 
@@ -81,4 +77,5 @@ tail - 持续读取
 logstream - 日志流
 warning - 提醒
 rotation - 轮换备份
+differentiator - 分流器
 ```

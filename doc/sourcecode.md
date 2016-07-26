@@ -1,7 +1,7 @@
++ 启动运行
 
 
-
-信号处理
++ 信号处理
 
 https://github.com/mozilla-services/heka/blob/be1420d226808485a557ad622bb75785cadfa43a/pipeline/pipeline_runner.go
 
