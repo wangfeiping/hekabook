@@ -21,7 +21,7 @@ https://github.com/hyperledger/fabric/blob/master/docs/protocol-spec.md
 
 本文档描述了适用于行业用例的区块链实现，包括基本原理、体系架构和协议。
 
-### 1.1 什么是fabric ？
+### 1.1 fabric 是什么？
 
 fabric 是一个数字事件的账本，这些数字事件称为事务，由不同的参与者共享，每个参与者在整个系统中只拥有一部分权利。账本只能够在参与者协商一致时进行更新，并且一旦记录，信息永远不能被更改。每一条记录的事件都是与参与者一致同意的证明一起加密并可验证的。
 
@@ -205,100 +205,114 @@ POST host:port/chaincode
 
 ### 4. 安全（Security）
 
-This section discusses the setting depicted in the figure below. In particular, the system consists of the following entities: membership management infrastructure, i.e., a set of entities that are responsible for identifying an individual user (using any form of identification considered in the system, e.g., credit cards, id-cards), open an account for that user to be able to register, and issue the necessary credentials to successfully create transactions and deploy or invoke chaincode successfully through the fabric. 
-本节讨论
+本节讨论下图所示的设置。该系统由如下的实体组成：成员管理设施，即负责确认用户身份的一组实体（使用系统支持的任意形式的身份认证方式，例如：信用卡，身份证），并为该用户打开账号使该用户能够在fabric 中注册、发布必要的证书以成功创建交易并部署和调用链码（Chaincode）。
 
 架构图/图
 
-    Peers, that are classified as validating peers, and non-validating peers. Validating peers (also known as validators) order and process (check validity, execute, and add to the blockchain) user-messages (transactions) submitted to the network. Non validating peers (also known as peers) receive user transactions on behalf of users, and after some fundamental validity checks, they forward the transactions to their neighboring validating peers. Peers maintain an up-to-date copy of the blockchain, but in contradiction to validators, they do not execute transactions (a process also known as transaction validation).
-    End users of the system, that have registered to our membership service administration, after having demonstrated ownership of what is considered identity in the system, and have obtained credentials to install the client-software and submit transactions to the system.
-    Client-software, the software that needs to be installed at the client side for the latter to be able to complete his registration to our membership service and submit transactions to the system.
-    Online wallets, entities that are trusted by a user to maintain that user's credentials, and submit transactions solely upon user request to the network. Online wallets come with their own software at the client-side, that is usually light-weight, as the client only needs to authenticate himself and his requests to the wallet. While it can be the case that peers can play the role of online wallet for a set of users, in the following sessions the security of online wallets is detailed separately.
++ 端点，被分类为验证点（Validating peer）和非验证点（Non-validating peer）。验证点（也叫验证者）订阅并处理（验证有效性、执行、添加到区块链）提交给网络的用户消息（交易/Transaction）。非验证点（也叫端点）接收以用户名义发出的交易（Transaction），并在一些基本的有效性检查之后，会将交易转发到相邻的验证点（Validating peer）。端点维护区块链最新的副本，？？？但是与验证者产生矛盾时，端点不会执行交易（这个过程也叫做交易验证）。？？？
+    
++ 系统的终端用户，已经注册到成员服务中，在出示了系统所确认其身份的所有权之后，将获得证书可用于安装到客户端软件或直接提交交易给系统。
+    
++ 客户端软件，软件需要安装在客户端以便能够完成成员（Membership）服务的注册以及向系统提交交易（Transaction）。
 
-Users who wish to make use of the fabric, open an account at the membership management administration, by proving ownership of identity as discussed in previous sections, new chaincodes are announced to the blockchain network by the chaincode creator (developer) through the means of a deployment transaction that the client-software would construct on behalf of the developer. Such transaction is first received by a peer or validator, and afterwards circulated in the entire network of validators, this transaction is executed and finds its place to the blockchain network. Users can also invoke a function of an already deployed chain-code through an invocation transaction.
++ 在线钱包，是用户信任的实体，在网络中全权负责维护用户的证书以及提交交易。在线钱包是独立的客户端软件（通常是轻量的），在客户端只需要验证其自身及其所发给在线钱包的请求。实际情形中（同一个）端点也可以为多个用户访问和使用在线钱包，但与在线钱包的会话（Session）中不同用户的安全性是完全隔离的。
 
-The next section provides a summary of the business goals of the system that drive the security requirements. We then overview the security components and their operation and show how this design fulfills the security requirements.
-4.1 Business security requirements
+想要使用fabric 的用户，在成员管理中打开账户（如前面章节所术证明身份所有权），链码创建者（开发者）使用客户端软件为自己在区块链网络中（提交部署交易/deployment transaction）公布新的链码（Chaincode）。这样的交易首先被端点或验证者接收，之后会分发给整个网络的验证者，这个交易会被执行并在区块链网络中找到自己的位置。用户也可以使用调用交易（invocation transaction）调用一个已经部署的链码的方法。
 
-This section presents business security requirements that are relevant to the context of the fabric. Incorporation of identity and role management.
+下一节总结了系统安全需求的商业目标。将会介绍安全组件及其几本操作以及展示该设计如何满足安全需求。
 
-In order to adequately support real business applications it is necessary to progress beyond ensuring cryptographic continuity. A workable B2B system must consequently move towards addressing proven/demonstrated identities or other attributes relevant to conducting business. Business transactions and consumer interactions with financial institutions need to be unambiguously mapped to account holders. Business contracts typically require demonstrable affiliation with specific institutions and/or possession of other specific properties of transacting parties. Accountability and non-frameability are two reasons that identity management is a critical component of such systems.
+### 4.1 商业安全需求
 
-Accountability means that users of the system, individuals, or corporations, who misbehave can be traced back and be set accountable for their actions. In many cases, members of a B2B system are required to use their identities (in some form) to participate in the system, in a way such that accountability is guaranteed. Accountability and non-frameability are both essential security requirements in B2B systems and they are closely related. That is, a B2B system should guarantee that an honest user of such system cannot be framed to be accused as responsible for transactions originated by other users.
+本节介绍与fabric 环境相关的商业安全需求。身份与角色管理的结合。
 
-In addition a B2B system should be renewable and flexible in order to accommodate changes of participants’s roles and/or affiliations.
+为了充分支持真实的商业应用不仅要确保？？？加密的持续性（cryptographic continuity）？？？。？？？A workable B2B system must consequently move towards addressing proven/demonstrated identities or other attributes relevant to conducting business.？？？商业交易与消费者与商业机构交互时需要明确的对应到账户。商业合约通常要求明确关联特定机构和/或交易方的特定财产。可追溯（Accountability）和不可伪造（Non-frameability）是身份管理成为这类系统重要组件的两个原因。
 
-Transactional privacy.
+可追溯意味着系统用户、个人或公司的过失行为可被追溯并为其行为负责。在许多情况下，B2B系统的成员会被要求使用他们的真实身份（某种形式）参与到系统中，作为可追溯的一种保障方式。可追溯和不可伪造都是B2B系统基本的安全需求并且相互密切关联。B2B系统应保障系统中的诚实用户不会为被假冒发起的交易负责。
 
-In B2B relationships there is a strong need for transactional privacy, i.e., allowing the end-user of a system to control the degree to which it interacts and shares information with its environment. For example, a corporation doing business through a transactional B2B system requires that its transactions are not visible to other corporations or industrial partners that are not authorized to share classified information with.
+此外B2B系统应该可更新和灵活以便符合参与者角色和从属关系的变化。
 
-Transactional privacy in the fabric is offered by the mechanisms to achieve two properties with respect to non authorized users:
+交易私密性（Transactional privacy）
 
-    Transaction anonymity, where the owner of a transaction is hidden among the so called anonymity set, which in the fabric, is the set of users.
+B2B的关系中对交易私密性有强需求，即允许终端用户控制系统中交互和共享信息的程度。例如，一个公司正在做的交易要求不能被其他公司或合作者在没有被授权的情况下看到相关机密信息。
 
-    Transaction unlinkability, where two or more transactions of the same user should not be linked as such.
+在fabric 中，交易私密性是在尊重非授权用户的前提下通过实现两个特性来提供的：
 
-Clearly depending on the context, non-authorized users can be anyone outside the system, or a subset of users.
++ 匿名交易，交易的所有者如果在一个匿名集合中时是隐藏的，在fabric 中这个集合就是一个用户集合。
 
-Transactional privacy is strongly associated to the confidentiality of the content of a contractual agreement between two or more members of a B2B system, as well as to the anonymity and unlinkability of any authentication mechanism that should be in place within transactions.
++ 交易的非关联性，同一个用户的交易之间不应建立关联。
 
-Reconciling transactional privacy with identity management.
+从文中可以很清楚的看出来，非授权用户可以是系统外的任何一个人，或是一部分用户。
 
-As described later in this document, the approach taken here to reconcile identity management with user privacy and to enable competitive institutions to transact effectively on a common blockchain (for both intra- and inter-institutional transactions) is as follows:
+交易私密性是与B2B系统成员间合约内容的保密性密切相关的，两个或多个成员之间的合同协议内容的保密性，与任何身份验证机制的匿名和非关联性一样，应在交易中得到应有的重视。
 
-    add certificates to transactions to implement a “permissioned” blockchain
+协调交易私密性与身份管理
 
-    utilize a two-level system:
+为了协调身份管理与交易私密性，使竞争的机构能够有效地在普通区块链上交易（机构内和机构间交易），方法是，如下︰
 
-        (relatively) static enrollment certificates (ECerts), acquired via registration with an enrollment certificate authority (CA).
++ 1、增加证书到交易中实现权限区块链
 
-        transaction certificates (TCerts) that faithfully but pseudonymously represent enrolled users, acquired via a transaction CA.
++ 2、使用两级系统：
 
-    offer mechanisms to conceal the content of transactions to unauthorized members of the system.
++ i. （相对）静态注册证书（ECerts），通过登记注册证书颁发机构（CA）获得。
 
-Audit support. Commercial systems are occasionally subjected to audits. Auditors in such cases should be given the means to check a certain transaction, or a certain group of transactions, the activity of a particular user of the system, or the operation of the system itself. Thus, such capabilities should be offered by any system featuring transactions containing contractual agreements between business partners.
-4.2 User Privacy through Membership Services
++ ii. 真实但匿名的代表注册用户的的交易证书（TCerts），通过交易证书颁发机构（CA）获得。
 
-Membership Services consists of an infrastructure of several entities that together manage the identity and privacy of users on the network. These services validate user’s identity, register the user in the system, and provide all the credentials needed for him/her to be an active and compliant participant able to create and/or invoke transactions. A Public Key Infrastructure (PKI) is a framework based on public key cryptography that ensures not only the secure exchange of data over public networks but also affirms the identity of the other party. A PKI manages the generation, distribution and revocation of keys and digital certificates. Digital certificates are used to establish user credentials and to sign messages. Signing messages with a certificate ensures that the message has not been altered. Typically a PKI has a Certificate Authority (CA), a Registration Authority (RA), a certificate database, and a certificate storage. The RA is a trusted party that authenticates users and vets the legitimacy of data, certificates or other evidence submitted to support the user’s request for one or more certificates that reflect that user’s identity or other properties. A CA, upon advice from an RA, issues digital certificates for specific uses and is certified directly or hierarchically by a root CA. Alternatively, the user-facing communications and due diligence responsibilities of the RA can be subsumed as part of the CA. Membership Services is composed of the entities shown in the following figure. Introduction of such full PKI reinforces the strength of this system for B2B (over, e.g. Bitcoin).
++ 3、提供机制对未授权的系统成员隐藏交易内容。
 
-Figure 1
+审计支持
 
-Root Certificate Authority (Root CA): entity that represents the trust anchor for the PKI scheme. Digital certificates verification follows a chain of trust. The Root CA is the top-most CA in the PKI hierarchy.
+商业系统有时会受到审计。审计者需要检查某一具体交易或一组特定的交易，系统特定用户的行为，或系统本身的运行情况。因此，这种（审计）能力应该在所有交易系统中通过商业伙伴之间合同协定的方式提供。
 
-Registration Authority (RA): a trusted entity that can ascertain the validity and identity of users who want to participate in the permissioned blockchain. It is responsible for out-of-band communication with the user to validate his/her identity and role. It creates registration credentials needed for enrollment and information on root of trust.
+### 4.2 成员服务中的用户私密信息
 
-Enrollment Certificate Authority (ECA): responsible for issuing Enrollment Certificates (ECerts) after validating the registration credentials provided by the user.
+成员服务由网络中共同管理用户身份和私密信息的多个实体组成。这些服务验证用户身份，这些服务验证用户身份，将用户注册到系统中，并提供所有所需的证书，以使用户成为被授权的参与者进而能够创建和/或调用交易。PKI是基于公钥加密的框架，以确保在保证公网数据交换安全的同时可以确认对方的身份。PKI管理秘钥和数字证书的生成，分发和吊销。数字证书用于创建用户证书和签名消息。携带证书的签名消息可以确保消息不会被篡改。通常PKI包括证书颁发机构（CA），注册机构（RA），证书数据库和证书存储。RA负责验证用户身份以及审查数据、证书或其他凭证的合法性，以支持用户进一步请求反应其身份或其他属性的证书。CA直接或间接由根CA认证，会接收RA的数据信息并根据其信息向特定用户发布数字证书。或者，在与用户通信或为了提高效率时，RA可以被归入CA。成员服务由下图所示的实例组成。介绍了完整的PKI体系，加强B2B系统的健壮性（？？？超过比特币？？？）。
 
-Transaction Certificate Authority (TCA): responsible for issuing Transaction Certificates (TCerts) after validating the enrollment credentials provided by the user.
+图1/图
 
-TLS Certificate Authority (TLS-CA): responsible for issuing TLS certificates and credentials that allow the user to make use of its network. It validates the credential(s) or evidence provided by the user that justifies issuance of a TLS certificate that includes specific information pertaining to the user.
+根CA（Root Certificate Authority）：代表PKI体系的信任基础。数字证书的验证需要沿着信任链进行验证。根CA是PKI体系最顶端的CA。
 
-In this specification, membership services is expressed through the following associated certificates issued by the PKI:
+RA：可以确认想要加入权限区块链的用户的有效性和身份。负责与用户带外通信（out-of-band communication）验证用户身份与角色。为在根上注册和获取信息创建登记凭证。
 
-Enrollment Certificates (ECerts) ECerts are long-term certificates. They are issued for all roles, i.e. users, non-validating peers, and validating peers. In the case of users, who submit transactions for candidate incorporation into the blockchain and who also own TCerts (discussed below), there are two possible structure and usage models for ECerts:
+ECA（注册证书颁发机构/Enrollment Certificate Authority）：负责在验证了用户提供的登记凭证之后发布注册证书（ECerts）。
 
-    Model A: ECerts contain the identity/enrollmentID of their owner and can be used to offer only nominal entity-authentication for TCert requests and/or within transactions. They contain the public part of two key pairs – a signature key-pair and an encryption/key agreement key-pair. ECerts are accessible to everyone.
+TCA（交易证书颁发机构/Transaction Certificate Authority）：负责在验证了用户提供的注册凭证之后发布交易证书（TCerts）。
 
-    Model B: ECerts contain the identity/enrollmentID of their owner and can be used to offer only nominal entity-authentication for TCert requests. They contain the public part of a signature key-pair, i.e., a signature verification public key. ECerts are preferably accessible to only TCA and auditors, as relying parties. They are invisible to transactions, and thus (unlike TCerts) their signature key pairs do not play a non-repudiation role at that level.
+TLS-CA（TLS证书颁发机构/TLS Certificate Authority）：负责发布TLS证书与凭证允许用户使用其网络。TLS-CA验证用户提供的凭证或证据，以此检验TLS证书签发时包含了相关用户的指定信息。
 
-Transaction Certificates (TCerts) TCerts are short-term certificates for each transaction. They are issued by the TCA upon authenticated user-request. They securely authorize a transaction and may be configured to not reveal the identities of who is involved in the transaction or to selectively reveal such identity/enrollmentID information. They include the public part of a signature key-pair, and may be configured to also include the public part of a key agreement key pair. They are issued only to users. They are uniquely associated to the owner – they may be configured so that this association is known only by the TCA (and to authorized auditors). TCerts may be configured to not carry information of the identity of the user. They enable the user not only to anonymously participate in the system but also prevent linkability of transactions.
+在本规范中，成员服务通过 PKI颁发下列相关联的证书：
 
-However, auditability and accountability requirements assume that the TCA is able to retrieve TCerts of a given identity, or retrieve the owner of a specific TCert. For details on how TCerts are used in deployment and invocation transactions see Section 4.3, Transaction Security offerings at the infrastructure level.
+* 注册证书（ECerts） - 注册证书是长期证书，为所有角色发布，即用户、非验证点、验证点。对于用户，提交交易以候选等待被纳入区块链并且拥有TCerts（之后讨论），有两种结构和模型：
 
-TCerts can accommodate encryption or key agreement public keys (as well as digital signature verification public keys). If TCerts are thus equipped, then enrollment certificates need not also contain encryption or key agreement public keys.
++ 模型A：？？？注册证书（ECerts）包含拥有者的身份信息和注册ID，并可被用于实名认证的实体请求交易证书（TCerts）与交易。注册证书包含两对密钥的公共部分 - 签名密钥对和加密/密钥协议密钥对。注册证书（ECerts）可以被所有角色访问。？？？ Model A: ECerts contain the identity/enrollmentID of their owner and can be used to offer only nominal entity-authentication for TCert requests and/or within transactions. They contain the public part of two key pairs – a signature key-pair and an encryption/key agreement key-pair. ECerts are accessible to everyone.
 
-Such a key agreement public key, Key_Agreement_TCertPub_Key, can be generated by the transaction certificate authority (TCA) using a method that is the same as that used to generate the Signature_Verification_TCertPub_Key, but using an index value of TCertIndex + 1 rather than TCertIndex, where TCertIndex is hidden within the TCert by the TCA for recovery by the TCert owner.
++ 模型B：？？？注册证书（ECerts）包含拥有者的身份信息和注册ID，并可被用于实名认证的实体请求交易证书（TCerts）。注册证书包含签名验证公钥。注册证书最好只能由TCA和审计者访问，而对交易是不可见的，因此（不像交易证书）签名密钥对在这一级别不充当不可抵赖的角色。？？？ 
+Model B: ECerts contain the identity/enrollmentID of their owner and can be used to offer only nominal entity-authentication for TCert requests. They contain the public part of a signature key-pair, i.e., a signature verification public key. ECerts are preferably accessible to only TCA and auditors, as relying parties. They are invisible to transactions, and thus (unlike TCerts) their signature key pairs do not play a non-repudiation role at that level.
 
-The structure of a Transaction Certificate (TCert) is as follows:
+* 交易证书（TCerts） - 交易证书是短期证书，为每一个交易发布。交易证书由授权的用户请求TCA（交易证书颁发机构）发布。交易证书安全的授权交易，并可配置为不暴露参与交易方的身份或选择性的透露身份/注册ID信息。交易证书包含签名密钥对的公共部分，并可配置为也包含密钥协议密钥对的公共部分。交易证书仅发布给用户，它们唯一关联拥有者 - 也可以配置为此关联只会被TCA访问（并且可以授权给审计者）。交易证书可以配置为不携带用户的身份信息，这使用户不及可以匿名的参与系统也可以保护交易的关联性。
 
-    TCertID – transaction certificate ID (preferably generated by TCA randomly in order to avoid unintended linkability via the Hidden Enrollment ID field).
-    Hidden Enrollment ID: AES_EncryptK(enrollmentID), where key K = [HMAC(Pre-K, TCertID)]256-bit truncation and where three distinct key distribution scenarios for Pre-K are defined below as (a), (b) and (c).
-    Hidden Private Keys Extraction: AES_EncryptTCertOwner_EncryptKey(TCertIndex || known padding/parity check vector) where || denotes concatenation, and where each batch has a unique (per batch) time-stamp/random offset that is added to a counter (initialized at 1 in this implementation) in order to generate TCertIndex. The counter can be incremented by 2 each time in order to accommodate generation by the TCA of the public keys and recovery by the TCert owner of the private keys of both types, i.e., signature key pairs and key agreement key pairs.
-    Sign Verification Public Key – TCert signature verification public key.
-    Key Agreement Public Key – TCert key agreement public key.
-    Validity period – the time window during which the transaction certificate can be used for the outer/external signature of a transaction.
+然而，可审计性和可追溯性需要TCA能够检索给定身份的交易证书，或检索特定交易证书的拥有者。交易证书部署和调用交易的细节需查看 4.3节 交易安全在基础设施级别提供。
 
-There are at least three useful ways to consider configuring the key distribution scenario for the Hidden Enrollment ID field: (a) Pre-K is distributed during enrollment to user clients, peers and auditors, and is available to the TCA and authorized auditors. It may, for example, be derived from Kchain (described subsequently in this specification) or be independent of key(s) used for chaincode confidentiality.
+交易证书可包含加密或密钥协议公公共密钥 （以及数字签名验证公钥）。如果交易证书已经包含这些信息，那么注册证书无需也包含加密或密钥协议的公共密钥。
+
+TCA生成密钥协议公共密钥的方法与其生成签名验证公共密钥的方法相同，？？？但是使用TCertIndex + 1的索引值而不是TCertIndex，TCertIndex被TCA隐藏在交易证书中其拥有者可以恢复。？？？
+
+交易证书 (TCert) 的结构如下所示：
+
++ TCertID – transaction certificate ID (preferably generated by TCA randomly in order to avoid unintended linkability via the Hidden Enrollment ID field).
+
++ Hidden Enrollment ID: AES_EncryptK(enrollmentID), where key K = [HMAC(Pre-K, TCertID)]256-bit truncation and where three distinct key distribution scenarios for Pre-K are defined below as (a), (b) and (c).
+
++ Hidden Private Keys Extraction: AES_EncryptTCertOwner_EncryptKey(TCertIndex || known padding/parity check vector) where || denotes concatenation, and where each batch has a unique (per batch) time-stamp/random offset that is added to a counter (initialized at 1 in this implementation) in order to generate TCertIndex. The counter can be incremented by 2 each time in order to accommodate generation by the TCA of the public keys and recovery by the TCert owner of the private keys of both types, i.e., signature key pairs and key agreement key pairs.
+
++ Sign Verification Public Key – TCert signature verification public key.
+
++ Key Agreement Public Key – TCert key agreement public key.
+
++ Validity period – the time window during which the transaction certificate can be used for the outer/external signature of a transaction.
+
+至少有三个方法配置密钥分发来隐藏注册 ID：
+
++ (a) Pre-K is distributed during enrollment to user clients, peers and auditors, and is available to the TCA and authorized auditors. It may, for example, be derived from Kchain (described subsequently in this specification) or be independent of key(s) used for chaincode confidentiality.
 
 (b) Pre-K is available to validators, the TCA and authorized auditors. K is made available by a validator to a user (under TLS) in response to a successful query transaction. The query transaction can have the same format as the invocation transaction. Corresponding to Example 1 below, the querying user would learn the enrollmentID of the user who created the Deployment Transaction if the querying user owns one of the TCerts in the ACL of the Deployment Transaction. Corresponding to Example 2 below, the querying user would learn the enrollmentID of the user who created the Deployment Transaction if the enrollmentID of the TCert used to query matches one of the affiliations/roles in the Access Control field of the Deployment Transaction.
 
@@ -312,14 +326,15 @@ Example 2
 
 (c) Pre-K is available to the TCA and authorized auditors. The TCert-specific K can be distributed the TCert owner (under TLS) along with the TCert, for each TCert in the batch. This enables targeted release by the TCert owner of K (and thus trusted notification of the TCert owner’s enrollmentID). Such targeted release can use key agreement public keys of the intended recipients and/or PKchain where SKchain is available to validators as described subsequently in this specification. Such targeted release to other contract participants can be incorporated into a transaction or done out-of-band.
 
-If the TCerts are used in conjunction with ECert Model A above, then using (c) where K is not distributed to the TCert owner may suffice. If the TCerts are used in conjunction with ECert Model A above, then the Key Agreement Public Key field of the TCert may not be necessary.
+如果交易证书与注册证书模型 A结合使用，那么使用(c)方法K不分发给交易证书用有者也可以，并且交易证书的密钥协议公共密钥字段也不是必须的。
 
 The Transaction Certificate Authority (TCA) returns TCerts in batches, each batch contains the KeyDF_Key (Key-Derivation-Function Key) which is not included within every TCert but delivered to the client with the batch of TCerts (using TLS). The KeyDF_Key allows the TCert owner to derive TCertOwner_EncryptKey which in turn enables recovery of TCertIndex from AES_EncryptTCertOwner_EncryptKey(TCertIndex || known padding/parity check vector).
 
 TLS-Certificates (TLS-Certs) TLS-Certs are certificates used for system/component-to-system/component communications. They carry the identity of their owner and are used for network level security.
 
 This implementation of membership services provides the following basic functionality: there is no expiration/revocation of ECerts; expiration of TCerts is provided via the validity period time window; there is no revocation of TCerts. The ECA, TCA, and TLS CA certificates are self-signed, where the TLS CA is provisioned as a trust anchor.
-4.2.1 User/Client Enrollment Process
+
+### 4.2.1 User/Client Enrollment Process
 
 The next figure has a high-level description of the user enrollment process. It has an offline and an online phase.
 
@@ -355,7 +370,8 @@ TCert Expiration: At the time of processing a TCert, validators read from the st
 ECert Expiration: Enrollment certificates have different validity period length(s) than those in transaction certificates.
 
 Revocation is supported in the form of Certificate Revocation Lists (CRLs). CRLs identify revoked certificates. Changes to the CRLs, incremental differences, are announced through the Blockchain.
-4.3 Transaction security offerings at the infrastructure level
+
+### 4.3 Transaction security offerings at the infrastructure level
 
 Transactions in the fabric are user-messages submitted to be included in the ledger. As discussed in previous sections, these messages have a specific structure, and enable users to deploy new chaincodes, invoke existing chaincodes, or query the state of existing chaincodes. Therefore, the way transactions are formed, announced and processed plays an important role to the privacy and security offerings of the entire system.
 
@@ -368,7 +384,8 @@ Enforcing access control for the invocation of chaincode is an important securit
 Replay attacks is another crucial aspect of the security of the chaincode, as a malicious user may copy a transaction that was added to the Blockchain in the past, and replay it in the network to distort its operation. This is the topic of Section 4.3.3.
 
 The rest of this Section presents an overview of how security mechanisms in the infrastructure are incorporated in the transactions' lifecycle, and details each security mechanism separately.
-4.3.1 Security Lifecycle of Transactions
+
+### 4.3.1 Security Lifecycle of Transactions
 
 Transactions are created on the client side. The client can be either plain client, or a more specialized application, i.e., piece of software that handles (server) or invokes (client) specific chaincodes through the blockchain. Such applications are built on top of the platform (client) and are detailed in Section 4.4.
 
@@ -815,3 +832,27 @@ The DAO 由于被不断攻击，从众筹成功到被迫“解散”仅三个月
 + message - 消息
 
 + Message proto structure - 消息原型结构
+
++ Accountability - 可追溯
+
++ non-frameability - 不可伪造
+
++ ECerts - 注册证书
+
++ TCerts - 交易证书
+
++ CA - 证书颁发机构
+
++ out-of-band communication - 带外通信
+
++ registration credential - 登记凭证
+
++ Enrollment Certificate Authority
+
++ Transaction Certificate Authority
+
++ TLS Certificate Authority
+
++ signature key-pair
+
++ encryption/key agreement key-pair
