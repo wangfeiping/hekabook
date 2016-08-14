@@ -283,10 +283,9 @@ TLS-CA（TLS证书颁发机构/TLS Certificate Authority）：负责发布TLS证
 
 * 注册证书（ECerts） - 注册证书是长期证书，为所有角色发布，即用户、非验证点、验证点。对于用户，提交交易以候选等待被纳入区块链并且拥有TCerts（之后讨论），有两种结构和模型：
 
-+ 模型A：？？？注册证书（ECerts）包含拥有者的身份信息和注册ID，并可被用于实名认证的实体请求交易证书（TCerts）与交易。注册证书包含两对密钥的公共部分 - 签名密钥对和加密/密钥协议密钥对。注册证书（ECerts）可以被所有角色访问。？？？ Model A: ECerts contain the identity/enrollmentID of their owner and can be used to offer only nominal entity-authentication for TCert requests and/or within transactions. They contain the public part of two key pairs – a signature key-pair and an encryption/key agreement key-pair. ECerts are accessible to everyone.
+    + 模型A：？？？注册证书（ECerts）包含拥有者的身份信息和注册ID，并可被用于实名认证的实体请求交易证书（TCerts）与交易。注册证书包含两对密钥的公共部分 - 签名密钥对和加密/密钥协议密钥对。注册证书（ECerts）可以被所有角色访问。？？？ Model A: ECerts contain the identity/enrollmentID of their owner and can be used to offer only nominal entity-authentication for TCert requests and/or within transactions. They contain the public part of two key pairs – a signature key-pair and an encryption/key agreement key-pair. ECerts are accessible to everyone.
 
-+ 模型B：？？？注册证书（ECerts）包含拥有者的身份信息和注册ID，并可被用于实名认证的实体请求交易证书（TCerts）。注册证书包含签名验证公钥。注册证书最好只能由TCA和审计者访问，而对交易是不可见的，因此（不像交易证书）签名密钥对在这一级别不充当不可抵赖的角色。？？？ 
-Model B: ECerts contain the identity/enrollmentID of their owner and can be used to offer only nominal entity-authentication for TCert requests. They contain the public part of a signature key-pair, i.e., a signature verification public key. ECerts are preferably accessible to only TCA and auditors, as relying parties. They are invisible to transactions, and thus (unlike TCerts) their signature key pairs do not play a non-repudiation role at that level.
+    + 模型B：？？？注册证书（ECerts）包含拥有者的身份信息和注册ID，并可被用于实名认证的实体请求交易证书（TCerts）。注册证书包含签名验证公钥。注册证书最好只能由TCA和审计者访问，而对交易是不可见的，因此（不像交易证书）签名密钥对在这一级别不充当不可抵赖的角色。？？？ Model B: ECerts contain the identity/enrollmentID of their owner and can be used to offer only nominal entity-authentication for TCert requests. They contain the public part of a signature key-pair, i.e., a signature verification public key. ECerts are preferably accessible to only TCA and auditors, as relying parties. They are invisible to transactions, and thus (unlike TCerts) their signature key pairs do not play a non-repudiation role at that level.
 
 * 交易证书（TCerts） - 交易证书是短期证书，为每一个交易发布。交易证书由授权的用户请求TCA（交易证书颁发机构）发布。交易证书安全的授权交易，并可配置为不暴露参与交易方的身份或选择性的透露身份/注册ID信息。交易证书包含签名密钥对的公共部分，并可配置为也包含密钥协议密钥对的公共部分。交易证书仅发布给用户，它们唯一关联拥有者 - 也可以配置为此关联只会被TCA访问（并且可以授权给审计者）。交易证书可以配置为不携带用户的身份信息，这使用户不及可以匿名的参与系统也可以保护交易的关联性。
 
@@ -314,7 +313,7 @@ TCA生成密钥协议公共密钥的方法与其生成签名验证公共密钥�
 
 + (a) Pre-K is distributed during enrollment to user clients, peers and auditors, and is available to the TCA and authorized auditors. It may, for example, be derived from Kchain (described subsequently in this specification) or be independent of key(s) used for chaincode confidentiality.
 
-(b) Pre-K is available to validators, the TCA and authorized auditors. K is made available by a validator to a user (under TLS) in response to a successful query transaction. The query transaction can have the same format as the invocation transaction. Corresponding to Example 1 below, the querying user would learn the enrollmentID of the user who created the Deployment Transaction if the querying user owns one of the TCerts in the ACL of the Deployment Transaction. Corresponding to Example 2 below, the querying user would learn the enrollmentID of the user who created the Deployment Transaction if the enrollmentID of the TCert used to query matches one of the affiliations/roles in the Access Control field of the Deployment Transaction.
++ (b) Pre-K is available to validators, the TCA and authorized auditors. K is made available by a validator to a user (under TLS) in response to a successful query transaction. The query transaction can have the same format as the invocation transaction. Corresponding to Example 1 below, the querying user would learn the enrollmentID of the user who created the Deployment Transaction if the querying user owns one of the TCerts in the ACL of the Deployment Transaction. Corresponding to Example 2 below, the querying user would learn the enrollmentID of the user who created the Deployment Transaction if the enrollmentID of the TCert used to query matches one of the affiliations/roles in the Access Control field of the Deployment Transaction.
 
 Example 1:
 
@@ -324,15 +323,17 @@ Example 2:
 
 Example 2
 
-(c) Pre-K is available to the TCA and authorized auditors. The TCert-specific K can be distributed the TCert owner (under TLS) along with the TCert, for each TCert in the batch. This enables targeted release by the TCert owner of K (and thus trusted notification of the TCert owner’s enrollmentID). Such targeted release can use key agreement public keys of the intended recipients and/or PKchain where SKchain is available to validators as described subsequently in this specification. Such targeted release to other contract participants can be incorporated into a transaction or done out-of-band.
++ (c) Pre-K is available to the TCA and authorized auditors. The TCert-specific K can be distributed the TCert owner (under TLS) along with the TCert, for each TCert in the batch. This enables targeted release by the TCert owner of K (and thus trusted notification of the TCert owner’s enrollmentID). Such targeted release can use key agreement public keys of the intended recipients and/or PKchain where SKchain is available to validators as described subsequently in this specification. Such targeted release to other contract participants can be incorporated into a transaction or done out-of-band.
 
 如果交易证书与注册证书模型 A结合使用，那么使用(c)方法K不分发给交易证书用有者也可以，并且交易证书的密钥协议公共密钥字段也不是必须的。
 
-The Transaction Certificate Authority (TCA) returns TCerts in batches, each batch contains the KeyDF_Key (Key-Derivation-Function Key) which is not included within every TCert but delivered to the client with the batch of TCerts (using TLS). The KeyDF_Key allows the TCert owner to derive TCertOwner_EncryptKey which in turn enables recovery of TCertIndex from AES_EncryptTCertOwner_EncryptKey(TCertIndex || known padding/parity check vector).
+TCA会批量返回交易证书，每一批证书会包含KeyDF_Key（密钥派生功能密钥/Key-Derivation-Function Key），该密钥不会每个交易证书都配发，但会配发给每批交易证书并一起发送给客户端（使用TLS）。？？？KeyDF_Key允许交易证书拥有者派生TCertOwner_EncryptKey 使TCertIndex 能够从AES_EncryptTCertOwner_EncryptKey（TCertIndex || known padding/parity check vector）恢复。？？？
 
-TLS-Certificates (TLS-Certs) TLS-Certs are certificates used for system/component-to-system/component communications. They carry the identity of their owner and are used for network level security.
+TLS-Certs（TLS 证书/TLS-Certificate） - TLS 证书是用于系统/组件对系统/组件间通信的证书。他们携带其所有者的身份，并用于网络级别的安全性。
 
 This implementation of membership services provides the following basic functionality: there is no expiration/revocation of ECerts; expiration of TCerts is provided via the validity period time window; there is no revocation of TCerts. The ECA, TCA, and TLS CA certificates are self-signed, where the TLS CA is provisioned as a trust anchor.
+
+成员服务实现了以下基本功能︰ 没有过期/吊销的注册证书；通过有效性时间窗口提供的交易证书过期功能；交易证书没有撤销功能。ECA、 TCA 和 TLS CA 证书是自签名的，TLS CA为信任基础。
 
 ### 4.2.1 User/Client Enrollment Process
 
@@ -422,7 +423,8 @@ The goal is to achieve a design that will allow for granting or restricting acce
     all the above
 
 Notice, that this design offers the application the capability to leverage the fabric's membership service infrastructure and its public key infrastructure to build their own access control policies and enforcement mechanisms.
-4.3.2.1 Confidentiality against users
+
+### 4.3.2.1 Confidentiality against users
 
 To support fine-grained confidentiality control, i.e., restrict read-access to the plain-text of a chaincode to a subset of users that the chaincode creator defines, a chain is bound to a single long-term encryption key-pair (PKchain, SKchain). Though initially this key-pair is to be stored and maintained by each chain's PKI, in later releases, however, this restriction will be moved away, as chains (and the associated key-pairs) can be triggered through the Blockchain by any user with special (admin) privileges (See, Section 4.3.2.2).
 
@@ -496,17 +498,20 @@ Invocation transaction as in the case of deployment transaction consists of a ge
     Finally, contract-users and chain-validator sections provide the key the payload is encrypted with, the invoker's key, and the chain encryption key respectively. Upon receiving such transactions, the validators decrypt [code-name]PKchain using the chain-specific secret key SKchain and obtain the invoked chain-code identifier. Given the latter, validators retrieve from their local storage the chaincode's decryption key SKc, and use it to decrypt chain-validators' message, that would equip them with the symmetric key KI the invocation transaction's payload was encrypted with. Given the latter, validators decrypt code-info, and execute the chain-code function with the specified arguments, and the code-metadata attached(See, Section 4.4 for more details on the use of code-metadata). While the chain-code is executed, updates of the state of that chain-code are possible. These are encrypted using the state-specific key Ks that was defined during that chain-code's deployment. In particular, Ks is used the same way KiTx is used in the design of our current release (See, Section 4.7).
 
 Structure of query transaction. Query transactions have the same format as invoke transactions. The only difference is that Query transactions do not affect the state of the chaincode, and thus there is no need for the state to be retrieved (decrypted) and/or updated (encrypted) after the execution of the chaincode completes.
-4.3.2.2 Confidentiality against validators
+
+### 4.3.2.2 Confidentiality against validators
 
 This section deals with ways of how to support execution of certain transactions under a different (or subset) sets of validators in the current chain. This section inhibits IP restrictions and will be expanded in the following few weeks.
-4.3.3 Replay attack resistance
 
-In replay attacks the attacker "replays" a message it "eavesdropped" on the network or ''saw'' on the Blockchain. Replay attacks are a big problem here, as they can incur into the validating entities re-doing a computationally intensive process (chaincode invocation) and/or affect the state of the corresponding chaincode, while it requires minimal or no power from the attacker side. To make matters worse, if a transaction was a payment transaction, replays could potentially incur into the payment being performed more than once, without this being the original intention of the payer. Existing systems resist replay attacks as follows:
+### 4.3.3 预防重复播放攻击（Replay attack resistance）
 
-    Record hashes of transactions in the system. This solution would require that validators maintain a log of the hash of each transaction that has ever been announced through the network, and compare a new transaction against their locally stored transaction record. Clearly such approach cannot scale for large networks, and could easily result into validators spending a lot of time to do the check of whether a transaction has been replayed, than executing the actual transaction.
-    Leverage state that is maintained per user identity (Ethereum). Ethereum keeps some state, e.g., counter (initially set to 1) for each identity/pseudonym in the system. Users also maintain their own counter (initially set to 0) for each identity/pseudonym of theirs. Each time a user sends a transaction using an identity/pseudonym of his, he increases his local counter by one and adds the resulting value to the transaction. The transaction is subsequently signed by that user identity and released to the network. When picking up this transaction, validators check the counter value included within and compare it with the one they have stored locally; if the value is the same, they increase the local value of that identity's counter and accept the transaction. Otherwise, they reject the transaction as invalid or replay. Although this would work well in cases where we have limited number of user identities/pseudonyms (e.g., not too large), it would ultimately not scale in a system where users use a different identifier (transaction certificate) per transaction, and thus have a number of user pseudonyms proportional to the number of transactions.
+在重播攻击中，攻击者"重播"它在网络上"偷听"或 区块链上'看见'的一条消息。重播攻击是一个很大的问题，他们可以致使验证实体重新进行计算密集型的过程 （链码调用）和/或影响相应链码的状态，而攻击者只有很小甚至没有任何代价。如果是一个付款交易的话事情更糟，回放可能导致成付款进行不止一次，明显违背付款人的初衷。现有系统抵抗重放攻击，如下所示︰
+    
++ 记录系统中交易的哈希值。此方案需要验证者维护日志记录网络中公布的每笔交易的哈希值，并且将新交易与本地存储的交易记录进行比对。显然这种方法对于大型网络伸缩性有很大影响，且很容易导致到验证者花费大量的时间来检查交易是否被重播，比执行实际的交易花费的时间多得多。
 
-Other asset management systems, e.g., Bitcoin, though not directly dealing with replay attacks, they resist them. In systems that manage (digital) assets, state is maintained on a per asset basis, i.e., validators only keep a record of who owns what. Resistance to replay attacks come as a direct result from this, as replays of transactions would be immediately be deemed as invalid by the protocol (since can only be shown to be derived from older owners of an asset/coin). While this would be appropriate for asset management systems, this does not abide with the needs of a Blockchain systems with more generic use than asset management.
++ 利用每个用户保持的状态（Ethereum）。Ethereum维护某种状态，例如，为系统中每个身份/化名设置计数器（初值为 1）。用户也维护自己的计数器 （初值为 0）。每次用户发送使用自己身份/化名的交易，就在用户本地的计数器加一，并将所得到的结果值添加到交易中。交易随后以该用户身份签发到网络。当收到这笔交易，验证者检查交易记录的计数器值并与自己本地维护的进行比较；如果值是相同的则增加本地该用户的计数器值，并且接受交易。否则，交易会被认为是无效或重播的而被拒绝。虽然这个方案在用户数量不太大的情况下效果较好，在用户每个交易使用不同的身份标识（交易证书）并因此用户化名数与交易数目成一定比例的情况下，最终系统仍会失去伸缩性。
+
+其他资产管理系统，例如，比特币，虽然不是直接处理重放攻击，但也在预防这种攻击。在管理 （数字） 资产的系统中，状态在每个资产基础记录上进行维护，即验证者只记录下谁拥有什么。这可以直接防止重放攻击，根据协议（因为只会？？？显示？？？从资产/硬币的拥有者派生的）重放的交易将立即被视为无效。虽然这适用于资产管理系统，但并不适用于比资产管理系统更为通用的区块链系统的需求。
 
 In the fabric, replay attack protection uses a hybrid approach. That is, users add in the transaction a nonce that is generated in a different manner depending on whether the transaction is anonymous (followed and signed by a transaction certificate) or not (followed and signed by a long term enrollment certificate). More specifically:
 
@@ -523,14 +528,15 @@ In the fabric, replay attack protection uses a hybrid approach. That is, users a
 
     Storage overhead (only makes sense for validators here): O(m), where m is the approximate number of transactions within a validity period and corresponding validity period identifier (see below).
 
-4.4 Access control features on the application
+### 4.4 Access control features on the application
 
 An application, is a piece of software that runs on top of a Blockchain client software, and, performs a special task over the Blockchain, i.e., restaurant table reservation. Application software have a version of developer, enabling the latter to generate and manage a couple of chaincodes that are necessary for the business this application serves, and a client-version that would allow the application's end-users to make use of the application, by invoking these chain-codes. The use of the Blockchain can be transparent to the application end-users or not.
 
 This section describes how an application leveraging chaincodes can implement its own access control policies, and guidelines on how our Membership services PKI can be leveraged for the same purpose.
 
 The presentation is divided into enforcement of invocation access control, and enforcement of read-access control by the application.
-4.4.1 Invocation access control
+
+### 4.4.1 Invocation access control
 
 To allow the application to implement its own invocation access control at the application layer securely, special support by the fabric must be provided. In the following we elaborate on the tools exposed by the fabric to the application for this purpose, and provide guidelines on how these should be used by the application for the latter to enforce access control securely.
 
@@ -663,7 +669,8 @@ Chaincode processing: The validators, who receive the execute transaction issued
     The metadata of the deploy transaction (code-metadata component of the corresponding deployment transaction).
 
 Notice that sigma is either part of the arguments of the invoked function, or stored inside the code-metadata of the invocation transaction (properly formatted by the client-application). Application ACLs are included in the code-metadata section, that is also passed to the chain-code at execution time. Function hello is responsible for checking that sigma is indeed a valid signature issued by TCertui, on 'M || txBinding'.
-4.4.2 Read access control
+
+### 4.4.2 Read access control
 
 This section describes how the fabric's infrastructure offers support to the application to enforce its own read-access control policies at the level of users. As in the case of invocation access control, the first part describes the infrastructure features that can be leveraged by the application for this purpose, and the last part details on the way applications should use these tools.
 
@@ -702,7 +709,8 @@ At deployment time, application uA performs the following steps:
 At invocation time, the client-application on ur's node, would be able, by obtaining the deployment transaction to retrieve the content of C. It just needs to retrieve the tx-metadata field of the associated deployment transaction, and trigger the decryption functionality offered by our Blockchain infrastrucure's client, for Cur. Notice that it is the application's responsibility to encrypt the correct C for ur. Also, the use of tx-metadata field can be generalized to accommodate application-needs. E.g., it can be that invokers leverage the same field of invocation transactions to pass information to the developer of the application, etc.
 
 Important Note: It is essential to note that validators do not provide any decryption oracle to the chain-code throughout its execution. Its infrastructure is though responsible for decrypting the payload of the chain-code itself (as well as the code-metadata fields near it), and provide those to containers for deployment/execution.
-4.5 Online wallet service
+
+### 4.5 Online wallet service
 
 This section describes the security design of a wallet service, which in this case is a node with which end-users can register, store their key material and through which they can perform transactions. Because the wallet service is in possession of the user's key material, it is clear that without a secure authorization mechanism in place a malicious wallet service could successfully impersonate the user. We thus emphasize that this design corresponds to a wallet service that is trusted to only perform transactions on behalf of its clients, with the consent of the latter. There are two cases for the registration of an end-user to an online wallet service:
 
@@ -736,12 +744,14 @@ Here, TxDetails refer to the information needed by the online service to constru
 AccSecProofu is again an HMAC on the rest fields of request using the shared secret. Nonce-based methods similar to what we have in the fabric can be used to protect against replays.
 
 TLS connections can be used in each case with server side authentication to secure the request at the network layer (confidentiality, replay attack protection, etc)
-4.6 Network security (TLS)
+
+### 4.6 Network security (TLS)
 
 The TLS CA should be capable of issuing TLS certificates to (non-validating) peers, validators, and individual clients (or browsers capable of storing a private key). Preferably, these certificates are distinguished by type, per above. TLS certificates for CAs of the various types (such as TLS CA, ECA, TCA) could be issued by an intermediate CA (i.e., a CA that is subordinate to the root CA). Where there is not a particular traffic analysis issue, any given TLS connection can be mutually authenticated, except for requests to the TLS CA for TLS certificates.
 
 In the current implementation the only trust anchor is the TLS CA self-signed certificate in order to accommodate the limitation of a single port to communicate with all three (co-located) servers, i.e., the TLS CA, the TCA and the ECA. Consequently, the TLS handshake is established with the TLS CA, which passes the resultant session keys to the co-located TCA and ECA. The trust in validity of the TCA and ECA self-signed certificates is therefore inherited from trust in the TLS CA. In an implementation that does not thus elevate the TLS CA above other CAs, the trust anchor should be replaced with a root CA under which the TLS CA and all other CAs are certified.
-4.7 Restrictions in the current release
+
+### 4.7 Restrictions in the current release
 
 This section lists the restrictions of the current release of the fabric. A particular focus is given on client operations and the design of transaction confidentiality, as depicted in Sections 4.7.1 and 4.7.2.
 
@@ -751,10 +761,11 @@ This section lists the restrictions of the current release of the fabric. A part
     Replay attack resistance mechanism is not available
     Invocation access control can be enforced at the application layer: it is up to the application to leverage the infrastructure's tools properly for security to be guaranteed. This means, that if the application fails to bind the transaction binding offered by the fabric, secure transaction processing may be at risk.
 
-4.7.1 Simplified client
+### 4.7.1 Simplified client
 
 Client-side enrollment and transaction creation are performed entirely by a non-validating peer that plays the role of an online wallet. In particular, the end-user leverages their registration credentials to open an account to a non-validating peer and uses these credentials to further authorize the peer to build transactions on the user's behalf. It needs to be noted, that such a design does not provide secure authorization for the peer to submit transactions on behalf of the user, as a malicious peer could impersonate the user. Details on the specifications of a design that deals with the security issues of online wallet can be found is Section 4.5. Currently the maximum number of peers a user can register to and perform transactions through is one.
-4.7.2 Simplified transaction confidentiality
+
+#### 4.7.2 Simplified transaction confidentiality
 
 Disclaimer: The current version of transaction confidentiality is minimal, and will be used as an intermediate step to reach a design that allows for fine grained (invocation) access control enforcement in a subsequent release.
 
@@ -856,3 +867,7 @@ The DAO 由于被不断攻击，从众筹成功到被迫“解散”仅三个月
 + signature key-pair
 
 + encryption/key agreement key-pair
+
++ Replay attack - 重复播放攻击/重放攻击
+ + Ethereum
+
