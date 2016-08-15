@@ -513,20 +513,23 @@ This section deals with ways of how to support execution of certain transactions
 
 其他资产管理系统，例如，比特币，虽然不是直接处理重放攻击，但也在预防这种攻击。在管理 （数字） 资产的系统中，状态在每个资产基础记录上进行维护，即验证者只记录下谁拥有什么。这可以直接防止重放攻击，根据协议（因为只会？？？显示？？？从资产/硬币的拥有者派生的）重放的交易将立即被视为无效。虽然这适用于资产管理系统，但并不适用于比资产管理系统更为通用的区块链系统的需求。
 
-In the fabric, replay attack protection uses a hybrid approach. That is, users add in the transaction a nonce that is generated in a different manner depending on whether the transaction is anonymous (followed and signed by a transaction certificate) or not (followed and signed by a long term enrollment certificate). More specifically:
+在fabric 中，抵御重放攻击使用一种混合方法。用户在交易中添加一个随机数，这个随机数根据交易匿名 （遵循并由交易证书签名）或不匿名 （遵循并由长期有效地注册证书签名）由不同的矿工生成。具体如下：
+    
++ 用户提交其注册证书签发的交易应包括一个nonce（任意非重复值），由先前相同证书签发的交易中使用的nonce函数（例如，计数器函数或哈希）产生。每个注册证书的第一个交易也可以由系统预设（例如，包含在初始区块上） 或由用户选择。在第一种情况下，初始区块随机数计算需要引入参数 nonceall，即用户使用一个常数和用户身份IDA携带的随机数来签署其注册证书的第一个交易
 
-    Users submitting a transaction with their enrollment certificate should include in that transaction a nonce that is a function of the nonce they used in the previous transaction they issued with the same certificate (e.g., a counter function or a hash). The nonce included in the first transaction of each enrollment certificate can be either pre-fixed by the system (e.g., included in the genesis block) or chosen by the user. In the first case, the genesis block would need to include nonceall , i.e., a fixed number and the nonce used by user with identity IDA for his first enrollment certificate signed transaction would be
-    nonceround0IDA <- hash(IDA, nonceall), where IDA appears in the enrollment certificate. From that point onward successive transactions of that user with enrollment certificate would include a nonce as follows nonceroundiIDA <- hash(nonceround{i-1}IDA), that is the nonce of the ith transaction would be using the hash of the nonce used in the {i-1}th transaction of that certificate. Validators here continue to process a transaction they receive, as long as it satisfies the condition mentioned above. Upon successful validation of transaction's format, the validators update their database with that nonce.
+    注册证书中会存在IDA，nonceround{0}IDA <- hash(IDA, nonceall)。从该点起后续由该用户注册证书签发的交易都将包括如下的nonce： nonceround{i}IDA <- hash(nonceround{i-1}IDA)，即第 i个交易随机数会使用同一证书第{i-1}个交易的nonce的哈希值。验证者在这里继续处理他们接收到的交易，只要它满足上述条件。成功验证交易格式后，验证者将该nonce保存到他们的数据库中。
 
-    Storage overhead:
+    存储开销：
 
-        on the user side: only the most recently used nonce,
+        在用户端：最近使用的nonce,
 
-        on validator side: O(n), where n is the number of users.
+        在验证者端：O(n), n为用户数。
 
     Users submitting a transaction with a transaction certificate should include in the transaction a random nonce, that would guarantee that two transactions do not result into the same hash. Validators add the hash of this transaction in their local database if the transaction certificate used within it has not expired. To avoid storing large amounts of hashes, validity periods of transaction certificates are leveraged. In particular validators maintain an updated record of received transactions' hashes within the current or future validity period.
 
-    Storage overhead (only makes sense for validators here): O(m), where m is the approximate number of transactions within a validity period and corresponding validity period identifier (see below).
++ 用户提交交易证书签发的交易应包括一个随机任意唯一值（随机nonce/random nonce），这将保证两个事务不会得到相同的哈希值。如果签发交易的交易证书未过期，验证者会将交易的哈希值保存在本地数据库中。为避免存储大量的哈希值，可通过交易证书有效期来调节。特别是验证者维护一个更新记录，记录当前或未来的有效期内收到的交易哈希值。
+
+    存储开销（只有验证者端）：O(m)，m值接近于有效期中的交易数和对应有效期内的身份标识数（见后）。
 
 ### 4.4 Access control features on the application
 
@@ -869,5 +872,7 @@ The DAO 由于被不断攻击，从众筹成功到被迫“解散”仅三个月
 + encryption/key agreement key-pair
 
 + Replay attack - 重复播放攻击/重放攻击
- + Ethereum
+ 
++ Ethereum
 
++ nonce
