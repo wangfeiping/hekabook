@@ -529,7 +529,9 @@ This section deals with ways of how to support execution of certain transactions
 
 + 用户提交交易证书签发的交易应包括一个随机任意唯一值（随机nonce/random nonce），这将保证两个事务不会得到相同的哈希值。如果签发交易的交易证书未过期，验证者会将交易的哈希值保存在本地数据库中。为避免存储大量的哈希值，可通过交易证书有效期来调节。特别是验证者维护一个更新记录，记录当前或未来的有效期内收到的交易哈希值。
 
-    存储开销（只有验证者端）：O(m)，m值接近于有效期中的交易数和对应有效期内的身份标识数（见后）。
+    存储开销：
+
+        只有验证者端：O(m)，m值接近于有效期中的交易数和对应有效期内的身份标识数（见后）。
 
 ### 4.4 Access control features on the application
 
