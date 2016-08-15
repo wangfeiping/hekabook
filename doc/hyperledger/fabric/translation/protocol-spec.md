@@ -525,8 +525,6 @@ This section deals with ways of how to support execution of certain transactions
 
         在验证者端：O(n), n为用户数。
 
-    Users submitting a transaction with a transaction certificate should include in the transaction a random nonce, that would guarantee that two transactions do not result into the same hash. Validators add the hash of this transaction in their local database if the transaction certificate used within it has not expired. To avoid storing large amounts of hashes, validity periods of transaction certificates are leveraged. In particular validators maintain an updated record of received transactions' hashes within the current or future validity period.
-
 + 用户提交交易证书签发的交易应包括一个随机任意唯一值（随机nonce/random nonce），这将保证两个事务不会得到相同的哈希值。如果签发交易的交易证书未过期，验证者会将交易的哈希值保存在本地数据库中。为避免存储大量的哈希值，可通过交易证书有效期来调节。特别是验证者维护一个更新记录，记录当前或未来的有效期内收到的交易哈希值。
 
     存储开销：
