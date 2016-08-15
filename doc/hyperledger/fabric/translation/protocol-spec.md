@@ -253,9 +253,9 @@ B2B的关系中对交易私密性有强需求，即允许终端用户控制系�
 
 + 2、使用两级系统：
 
-+ i. （相对）静态注册证书（ECerts），通过登记注册证书颁发机构（CA）获得。
+    i. （相对）静态注册证书（ECerts），通过登记注册证书颁发机构（CA）获得。
 
-+ ii. 真实但匿名的代表注册用户的的交易证书（TCerts），通过交易证书颁发机构（CA）获得。
+    ii. 真实但匿名的代表注册用户的的交易证书（TCerts），通过交易证书颁发机构（CA）获得。
 
 + 3、提供机制对未授权的系统成员隐藏交易内容。
 
@@ -715,40 +715,43 @@ At invocation time, the client-application on ur's node, would be able, by obtai
 
 Important Note: It is essential to note that validators do not provide any decryption oracle to the chain-code throughout its execution. Its infrastructure is though responsible for decrypting the payload of the chain-code itself (as well as the code-metadata fields near it), and provide those to containers for deployment/execution.
 
-### 4.5 Online wallet service
+### 4.5 在线钱包服务（Online wallet service）
 
-This section describes the security design of a wallet service, which in this case is a node with which end-users can register, store their key material and through which they can perform transactions. Because the wallet service is in possession of the user's key material, it is clear that without a secure authorization mechanism in place a malicious wallet service could successfully impersonate the user. We thus emphasize that this design corresponds to a wallet service that is trusted to only perform transactions on behalf of its clients, with the consent of the latter. There are two cases for the registration of an end-user to an online wallet service:
+本节介绍钱包服务的安全设计，单节点，终端用户可以注册，储存关键材料，可以执行交易。因为钱包服务拥有用户的关键材料，很明显，如果没有安全授权机制恶意钱包服务可以成功地模拟用户。因此我们强调，这种设计针对只代表客户端执行交易的授信钱包服务。终端用户登记到在线钱包服务有两种情况：
 
-    When the user has registered with the registration authority and acquired his/her <enrollID, enrollPWD>, but has not installed the client to trigger and complete the enrollment process;
-    When the user has already installed the client, and completed the enrollment phase.
+    1. 当用户已在登记机构登记并获得< enrollID，enrollPWD >，但还没有安装客户端触发并完成注册过程；
 
-Initially, the user interacts with the online wallet service to issue credentials that would allow him to authenticate to the wallet service. That is, the user is given a username, and password, where username identifies the user in the membership service, denoted by AccPub, and password is the associated secret, denoted by AccSec, that is shared by both user and service.
+    2. 当用户已经安装了客户端，并完成注册阶段。
 
-To enroll through the online wallet service, a user must provide the following request object to the wallet service:
+最初，用户与在线钱包服务交互从而发布凭证，以使用户自身能够获得钱包服务身份认证。这样用户获得用户名和密码，用户名是用户在成员服务中的身份标识，由 AccPub表示，密码是加密的，由 AccSec表示，被用户和服务共享。
 
+通过在线钱包服务注册，用户必须向钱包服务提供如下请求对象：
+```
 AccountRequest /* account request of u \*/
 {
     OBCSecCtx ,           /* credentials associated to network \*/
     AccPub<sub>u</sub>,   /* account identifier of u \*/
     AccSecProof<sub>u</sub>  /* proof of AccSec<sub>u</sub>\*/
- }
+}
+```
 
-OBCSecCtx refers to user credentials, which depending on the stage of his enrollment process, can be either his enrollment ID and password, <enrollID, enrollPWD> or his enrollment certificate and associated secret key(s) (ECertu, sku), where sku denotes for simplicity signing and decryption secret of the user. The content of AccSecProofu is an HMAC on the rest fields of request using the shared secret. Nonce-based methods similar to what we have in the fabric can be used to protect against replays. OBCSecCtx would give the online wallet service the necessary information to enroll the user or issue required TCerts.
+OBCSecCtx 指向用户凭据，这依赖于用户具体的注册过程，可能是用户注册 ID和密码，< enrollID，enrollPWD >或用户的注册证书以及相关密钥（多个）(ECertu，sku)，其中 sku 表示为简单签名和解密密钥。？？？AccSecProofu 内容HMAC 使用的共享密钥请求的其余字段。？？？基于nonce 的方法类似于我们在fabric 中用于防止重方攻击的方案。OBCSecCtx 会提供给在线钱包服务必要的信息以便注册用户或发布所需的交易证书（TCerts）。
 
-For subsequent requests, the user u should provide to the wallet service a request of similar format.
+接着，用户会向钱包服务提供类似如下格式的请求。
+```
+TransactionRequest /* account request of u \*/
+{
+    TxDetails,            /* specifications for the new transaction \*/
+    AccPub<sub>u</sub>,       /* account identifier of u \*/
+    AccSecProof<sub>u</sub>   /* proof of AccSec<sub>u</sub> \*/
+}
+```
 
- TransactionRequest /* account request of u \*/
- {
-      TxDetails,            /* specifications for the new transaction \*/
-      AccPub<sub>u</sub>,       /* account identifier of u \*/
-      AccSecProof<sub>u</sub>   /* proof of AccSec<sub>u</sub> \*/
- }
+如上所示，TxDetails 指向在线服务代表用户构建交易时所需的信息，即，类型和交易中特定用户的内容。
 
-Here, TxDetails refer to the information needed by the online service to construct a transaction on behalf of the user, i.e., the type, and user-specified content of the transaction.
+？？？AccSecProofu 仍然HMAC 使用的共享密钥请求的其余字段。？？？基于nonce 的方法类似于我们在fabric 中用于防止重方攻击的方案。
 
-AccSecProofu is again an HMAC on the rest fields of request using the shared secret. Nonce-based methods similar to what we have in the fabric can be used to protect against replays.
-
-TLS connections can be used in each case with server side authentication to secure the request at the network layer (confidentiality, replay attack protection, etc)
+TLS 连接可用于网络层在与服务器授权访问时保证请求的安全 （保密、 重放攻击防护，等等）。
 
 ### 4.6 Network security (TLS)
 
