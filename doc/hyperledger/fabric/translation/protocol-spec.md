@@ -87,11 +87,11 @@ fabric 系统由如下介绍的核心组件组成。
 
 ### 2.1.1 成员（Membership）服务
 
-成员（Membership）服务提供网络身份标识、私密性（Privacy）、保密性（Confidentiality）以及可审计性（Auditability）的管理。在非权限的区块链网络中，参与不需要授权并且所有节点能够平等的提交交易或尝试积累这些（交易？）为可接受的数据块，即参与角色没有区别。成员（Membership）服务结合PKI（Public Key Infrastructure）以及下发（decentralization）和一致性协商（consensus）等元素，将非权限区块链网络转换为权限区块链网络。在后者中，实体通过注册获得长期的身份凭证 （注册证书），并且可以根据实体类型进行区分。对于用户来说，这些证书具有TCA（Transaction Certificate Authority/交易凭证权限）可以发布匿名凭证这些凭证，即交易凭证，被用于授权提交交易。交易凭证保存在区块链网络中，能够使已授权的审计者访问集群中其他非关联的交易。
+成员（Membership）服务提供网络身份标识、私密性（Privacy）、保密性（Confidentiality）以及可审计性（Auditability）的管理。在非权限的区块链网络中，参与不需要授权并且所有节点能够平等的提交交易或尝试积累这些（交易？）为可接受的数据块，即参与角色没有区别。成员（Membership）服务结合PKI（Public Key Infrastructure）以及下发（decentralization）和共识协议（consensus）等元素，将非权限区块链网络转换为权限区块链网络。在后者中，实体通过注册获得长期的身份凭证 （注册证书），并且可以根据实体类型进行区分。对于用户来说，这些证书具有TCA（Transaction Certificate Authority/交易凭证权限）可以发布匿名凭证这些凭证，即交易凭证，被用于授权提交交易。交易凭证保存在区块链网络中，能够使已授权的审计者访问集群中其他非关联的交易。
 
 ### 2.1.2 区块链（Blockchain）服务
 
-区块链（Blockchain）服务通过点对点协议管理分布式账本，基于HTTP/2。数据结构经过高度的优化并提供了高效的哈希算法用于维护世界状态（World State）的复制。不同的一致性协商协议（PBFT, Raft, PoW, PoS）可以在每一次部署中配置选择和接入。
+区块链（Blockchain）服务通过点对点协议管理分布式账本，基于HTTP/2。数据结构经过高度的优化并提供了高效的哈希算法用于维护世界状态（World State）的复制。不同的共识协议（PBFT, Raft, PoW, PoS）可以在每一次部署中配置选择和接入。
 
 ### 2.1.3 链码（Chaincode）服务
 
@@ -119,7 +119,7 @@ fabric 部署包括一个成员（Membership）服务，多个验证点（Valida
 
 单验证点（Validating Peer）/图
 
-单点验证点（Validating peer）不需要一致性协商协议，并且默认使用？（noops）插件，该插件可以在接收到交易后即可运行交易。这使开发者可以在开发阶段立即得到运行结果反馈。
+单点验证点（Validating peer）不需要共识协议，并且默认使用？（noops）插件，该插件可以在接收到交易后即可运行交易。这使开发者可以在开发阶段立即得到运行结果反馈。
 
 ### 2.2.2 多验证点（Validating Peer）
 
@@ -199,7 +199,7 @@ POST host:port/chaincode
 
 ### 3.3 链码（Chaincode）
 
-### 3.4 可插拔的一致性协商协议框架（Pluggable Consensus Framework）
+### 3.4 可插拔的共识协议框架（Pluggable Consensus Framework）
 
 ### 3.5 事件（Events）
 
@@ -751,11 +751,11 @@ TransactionRequest /* account request of u \*/
 
 TLS 连接可用于网络层在与服务器授权访问时保证请求的安全 （保密、 重放攻击防护，等等）。
 
-### 4.6 Network security (TLS)
+### 4.6 网络安全（TLS）
 
-The TLS CA should be capable of issuing TLS certificates to (non-validating) peers, validators, and individual clients (or browsers capable of storing a private key). Preferably, these certificates are distinguished by type, per above. TLS certificates for CAs of the various types (such as TLS CA, ECA, TCA) could be issued by an intermediate CA (i.e., a CA that is subordinate to the root CA). Where there is not a particular traffic analysis issue, any given TLS connection can be mutually authenticated, except for requests to the TLS CA for TLS certificates.
+TLS CA 应能够给非验证点，验证者颁发TLS 证书，和独立客户端 （或能够存储私钥的浏览器）。最好，这些证书通过类型区分。TLS 证书可以提供给多种不同类型的CA（如 TLS CA、 ECA、 TCA） ，可以由中间 CA (即，是属于根 CA 的 CA)发布。如果不是一个特别的网络分析任务，除了申请TLS 证书的TLS CA 请求，任何给定的 TLS 连接可以进行相互身份验证。
 
-In the current implementation the only trust anchor is the TLS CA self-signed certificate in order to accommodate the limitation of a single port to communicate with all three (co-located) servers, i.e., the TLS CA, the TCA and the ECA. Consequently, the TLS handshake is established with the TLS CA, which passes the resultant session keys to the co-located TCA and ECA. The trust in validity of the TCA and ECA self-signed certificates is therefore inherited from trust in the TLS CA. In an implementation that does not thus elevate the TLS CA above other CAs, the trust anchor should be replaced with a root CA under which the TLS CA and all other CAs are certified.
+在当前实现中唯一信任基础是TLS CA 自签名的证书，以容纳单个端口与所有三个（合用）服务器通信，即，TLS CA、 TCA 和ECA。因此，TLS 需要与TLS CA建立握手，TLS CA 会将由此产生的会话密钥传送给TCA 和ECA。TCA 和ECA 自签名证书的有效性继承自TLS CA 的信任。这种实现不会因此使TLS CA 凌驾于其他CA，信任基础应被根CA 替换，而根CA 应当认证了TLS CA 和所有其他 CA。
 
 ### 4.7 Restrictions in the current release
 
@@ -817,6 +817,34 @@ One can notice that both deployment and invocation transactions consist of two s
 
     Section code-info: contains information on the chain-code source code. For deployment transaction this is essentially the chain-code identifier/name and source code, while for invocation chain-code is the name of the function invoked and its arguments. As shown in the two figures code-info in both transactions are encrypted ultimately using the chain-specific symmetric key Kchain.
 
+### 5. 拜占庭共识协议
+
+https://github.com/hyperledger/fabric/tree/master/consensus/pbft
+
+pbft 包是共识协议PBFT 的一种开创性实现[1]，其在验证点间提供的共识协议能够允许阈值限制数目内的验证点成为拜占庭，即被恶意的或不可预知的方式失败。在默认配置中，PBFT 可以容忍t < n/3 拜占庭验证点。
+
+在默认配置中，PBFT 设计为在运行至少3t + 1 个验证器（副本），容忍到t 个副本可能出现故障（包括恶意，或拜占庭式）。
+
+### 5.1 概览
+
+pbft 插件是共识协议PBFT 的一种实现。
+
+### 5.2 PBFT 核心方法
+
+以下方法控制并行使用非递归锁，因此可以从多个线程的并行调用。尽管这些方法通常能够完成运行，而且可能会调用通过CPI 传入的方法，但仍须注意防止造成活锁。
+
+### 5.2.1 newPbftCore 方法
+
+方法签名
+```
+func newPbftCore(id uint64, config *viper.Viper, consumer innerCPI, ledger consensus.Ledger) *pbftCore
+```
+
+newPbftCore 构造函数使用指定的id 实例化一个新的PBFT 封装实例。配置参数定义了PBFT 网络运行参数： 副本数N、 检查点周期K、以及请求超时和视图更改超时。
+
+### 10. 参考
+
++ [1] Miguel Castro, Barbara Liskov: Practical Byzantine fault tolerance and proactive recovery. ACM Trans. Comput. Syst. 20(4): 398-461 (2002)
 
 ### 词典
 
@@ -841,6 +869,8 @@ The DAO 由于被不断攻击，从众筹成功到被迫“解散”仅三个月
 + issue transaction 和submit transaction 的区别？
 
 + the stack 是指堆栈么？
+
++ consensus - 共识协议
 
 + noops 插件是什么？
 
@@ -879,3 +909,8 @@ The DAO 由于被不断攻击，从众筹成功到被迫“解散”仅三个月
 + Ethereum
 
 + nonce
+
++ trust anchor - 信任基础
+
++ livelock - 活锁  
+    活锁指的是任务或者执行者没有被阻塞，由于某些条件没有满足，导致一直重复尝试，失败，尝试，失败。

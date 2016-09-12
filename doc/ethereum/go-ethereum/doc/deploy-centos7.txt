@@ -1,0 +1,154 @@
+git clone https://github.com/ethereum/go-ethereum
+
+Mix: The DApp IDE  
+https://github.com/ethereum/wiki/wiki/Mix:-The-DApp-IDE
+
+ubuntu
+
+mkdir $GOPATH/src/ethereum
+cd $GOPATH/src/ethereum
+git clone https://github.com/ethereum/go-ethereum.git
+
+安装truffle
+```
+参考
+https://github.com/EthFans/wiki/wiki/%E5%A6%82%E4%BD%95%E5%AE%89%E8%A3%85-testrpc-%E5%92%8C-truffle
+
+# 安装系统依赖
+apt-get install build-essential git openssl
+
+# 安装 nodes
+curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+sudo apt-get install nodejs
+
+# 修复 npm 全局安装的文件权限问题
+apt-get install npm
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+
+vi /etc/profile
+export PATH=$PATH:/root/.npm-global/bin/
+
+# ???
+apt-get install node-gyp
+
+# ???
+apt-get install g++
+
+# 安装 truffle
+npm install --unsafe-perm -g truffle
+
+# 安装 testrpc
+npm install --unsafe-perm -g ethereumjs-testrpc
+```
+
+npm install -g ethereumjs-testrpc 执行报错
+```
+gyp WARN EACCES user "root" does not have permission to access the dev dir "/root/.npm-global/lib/node_modules/ethereumjs-testrpc/node_modules/scrypt/.node-gyp/5.12.0"
+gyp WARN EACCES attempting to reinstall using temporary dev dir "/root/.npm-global/lib/node_modules/ethereumjs-testrpc/node_modules/scrypt/.node-gyp"
+```
+
+truffle 开发
+```
+truffle init
+truffle compile
+truffle migrate
+truffle serve
+```
+启动testrpc 报错
+Error: Cannot find module './build/Release/scrypt'
+
+gyp: /usr/include/nodejs/common.gypi not found
+
+参考
+https://github.com/ethereumjs/testrpc/issues/134
+https://github.com/barrysteyn/node-scrypt/issues/108
+
+mkdir $GOPATH/src/cryptape
+cd $GOPATH/src/cryptape
+git clone https://github.com/cryptape/ethereum-bootstrap.git
+
+add-apt-repository ppa:ethereum/ethereum
+apt-get update
+apt-get install solc
+
+apt-get install expect
+
+https://github.com/cryptape/ethereum-bootstrap
+
+```
+cd ethereum-bootstrap
+./bin/import_keys.sh
+***** Using geth at: /root/cryptape/ethereum-bootstrap/bin/geth
+***** Import all pre-funded private keys
+***** Enter password for the new wallet: kerberos
+spawn /root/cryptape/ethereum-bootstrap/bin/geth --datadir data account import ./private_keys/9da26fc2e1d6ad9fdd46138906b0104ae68a65d8.key
+Your new account is locked with a password. Please give a password. Do not forget this password.
+Passphrase: 
+Repeat passphrase: kerberos
+
+Address: {9da26fc2e1d6ad9fdd46138906b0104ae68a65d8}
+spawn /root/cryptape/ethereum-bootstrap/bin/geth --datadir data account import ./private_keys/bd2d69e3e68e1ab3944a865b3e566ca5c48740da.key
+Your new account is locked with a password. Please give a password. Do not forget this password.
+Passphrase: 
+Repeat passphrase: kerberos
+
+Address: {bd2d69e3e68e1ab3944a865b3e566ca5c48740da}
+spawn /root/cryptape/ethereum-bootstrap/bin/geth --datadir data account import ./private_keys/ca9f427df31a1f5862968fad1fe98c0a9ee068c4.key
+Your new account is locked with a password. Please give a password. Do not forget this password.
+Passphrase: 
+Repeat passphrase: 
+Address: {ca9f427df31a1f5862968fad1fe98c0a9ee068c4}
+spawn /root/cryptape/ethereum-bootstrap/bin/geth --datadir data account import ./private_keys/81063419f13cab5ac090cd8329d8fff9feead4a0.key
+Your new account is locked with a password. Please give a password. Do not forget this password.
+Passphrase: 
+Repeat passphrase: kerberos
+
+Address: {81063419f13cab5ac090cd8329d8fff9feead4a0}
+spawn /root/cryptape/ethereum-bootstrap/bin/geth --datadir data account import ./private_keys/3ae88fe370c39384fc16da2c9e768cf5d2495b48.key
+Your new account is locked with a password. Please give a password. Do not forget this password.
+Passphrase: 
+Repeat passphrase: kerberos
+
+Address: {3ae88fe370c39384fc16da2c9e768cf5d2495b48}
+***** Done.
+```
+
+```
+truffle init
+
+truffle compile
+
+truffle migrate
+Error: account is locked
+
+# 解锁账户
+personal.unlockAccount(web3.eth.accounts[0], "kerberos");
+
+truffle migrate
+Running migration: 1_initial_migration.js
+  Deploying Migrations...
+服务端有处理日志，但客户端始终没有运行完：
+I0912 09:23:48.218945 eth/api.go:1191] Tx(0xc93135c43ce04e356fdb05c5eb438c5dabda7b812359954a252c613cfdfdfcb8) created: 0x3ff58e2e4f9ab2d47f0cd84bead42dd0369846c9
+
+使用miner.start(1) 在服务端进行挖矿，完成后，客户端就有响应了，但再次报错：
+Running migration: 1_initial_migration.js
+  Deploying Migrations...
+  Migrations: 0x3ff58e2e4f9ab2d47f0cd84bead42dd0369846c9
+Saving successful migration to network...
+Error encountered, bailing. Network state unknown. Review successful transactions manually.
+Error: account is locked
+
+可能是由于truffle migrate 没有完全执行完之前停止了挖矿（miner.stop()）。
+保持挖矿执行，并重新执行truffle migrate 智能合约正常deploy 了。
+```
+
+geth 设置可访问rpcaddr (--rpcaddr 0.0.0.0)
+```
+#!/bin/bash
+
+geth=${GETH:-geth}
+
+# $geth --datadir data --networkid 31415926 --rpc --rpccorsdomain "*" --nodiscover console
+$geth --datadir data --networkid 31415926 --rpc --rpccorsdomain "*" --rpcaddr 0.0.0.0 --nodiscover console
+```

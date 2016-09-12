@@ -1,0 +1,159 @@
+virtualbox 5.0.26 r108824
+Linux
+Linux 2.6 / 3.x / 4.x (64 bit)
+CentOS-7-x86_64-Minimal-1511.iso
+
+自动获取ip
+vi /etc/sysconfig/network-scripts/ifcfg-eth0
+```
+TYPE=Ethernet
+BOOTPROTO=dhcp
+# DEFROUTE=yes
+# PEERDNS=yes
+# PEERROUTES=yes
+# IPV4_FAILURE_FATAL=no
+# IPV6INIT=yes
+# IPV6_AUTOCONF=yes
+# IPV6_DEFROUTE=yes
+# IPV6_PEERDNS=yes
+# IPV6_PEERROUTES=yes
+# IPV6_FAILURE_FATAL=no
+NAME=enp0s3
+UUID=73694e06-6301-4918-9b69-f4746b03c769
+DEVICE=enp0s3
+ONBOOT=yes
+NM_CONTROLLED=no
+```
+
+yum install docker-io
+
+curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+yum install git
+
+http://hyperledger-fabric.readthedocs.io/en/latest/dev-setup/build/
+
+tar -xzvf /root/go1.6.2.linux-amd64.tar.gz
+
+tar -xzvf /root/jdk-8u101-linux-x64.tar.gz
+
+yum -y install gcc-c++
+
+yum install bzip2
+yum install unzip
+yum install wget
+
+vi /root/gradle-install.sh
+
+```
+#!/bin/bash
+# installs to /opt/gradle
+# existing versions are not overwritten/deleted
+# seamless upgrades/downgrades
+# $GRADLE_HOME points to latest *installed* (not released)
+gradle_version=2.14.1
+mkdir /opt/gradle
+wget -N http://downloads.gradle.org/distributions/gradle-${gradle_version}-all.zip
+unzip -oq ./gradle-${gradle_version}-all.zip -d /opt/gradle
+ln -sfnv gradle-${gradle_version} /opt/gradle/latest
+printf "export GRADLE_HOME=/opt/gradle/latest\nexport PATH=\$PATH:\$GRADLE_HOME/bin" > /etc/profile.d/gradle.sh
+. /etc/profile.d/gradle.sh
+hash -r ; sync
+# check installation
+gradle -v
+```
+
+chmod +x /root/gradle-install.sh
+/root/gradle-install.sh
+
+vi /etc/profile
+
+```
+export GOROOT=/root/go
+export GOPATH=/root/gopath
+export GOBIN=$GOROOT/bin
+export GOARCH=amd64
+export GOOS=linux
+
+export GRADLE_HOME=/opt/gradle/latest
+
+export JAVA_HOME=/apps/jdk1.8.0_101
+set CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+
+export PATH=$PATH:$GOBIN:$GRADLE_HOME/bin:$JAVA_HOME/bin:/usr/local/bin:/usr/local/lib
+
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+```
+
+yum install snappy-devel zlib-devel bzip2-devel
+git clone https://github.com/facebook/rocksdb.git
+cd rocksdb
+git checkout v4.1
+PORTABLE=1 make shared_lib
+INSTALL_PATH=/usr/local make install-shared
+
+git clone https://github.com/hyperledger/fabric.git
+
+
+trouble shooting===================================
+
+```
+Step 3 : RUN /hyperledger/scripts/provision/common.sh
+ ---> Running in 31249d891dd9
+permission denied
+Container command could not be invoked.
+make: *** [build/image/base/.dummy] Error 1
+```
+
+解决，去掉--selinux-enabled，selinux 造成权限问题？
+```
+docker-io
+vi /etc/sysconfig/docker
+
+# OPTIONS='--selinux-enabled --log-driver=journald'
+OPTIONS='--log-driver=journald'
+```
+
+deploy chaincode 成功之后无法调用：
+```
+{"jsonrpc":"2.0",
+    "error":{
+        "code":-32003,
+        "message":"Query failure",
+        "data":"Error when querying chaincode: Error:Failed to launch chaincode spec(Could not get deployment transaction for ****** - LedgerError - ResourceNotFound: ledger: resource not found)"
+    },
+    "id":5
+}
+```
+
+解决，deploy chaincode 时没有成功，需要修改docker 服务配置并重启：
+```
+docker-io
+vi /etc/sysconfig/docker
+
+# OPTIONS='--selinux-enabled --log-driver=journald'
+# OPTIONS='--log-driver=journald'
+OPTIONS='-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --log-driver=journald'
+
+docker-engine
+vi /usr/lib/systemd/system/docker.service
+
+# ExecStart=/usr/bin/docker daemon -H fd://
+ExecStart=/usr/bin/docker daemon -H fd:// -H=unix:///var/run/docker.sock -H=tcp://0.0.0.0:2375
+```
+
+注：
+启动单点peer 测试时，每个peer 服务器配置都相同，
+deploy chaincode 时，每个peer 都会在自己所在服务器上单独启动一个docker 运行chaincode。
+启动peer 集群时，修改相关配置的话，
+是否能实现chaincode 只启动一个docker ？需要进一步测试验证。
+
+修改/etc/sysconfig/docker 无法实现；
+修改/usr/lib/systemd/system/docker.service 无法实现；
+修改core.xml 没有实现
+
+
+
+
+
