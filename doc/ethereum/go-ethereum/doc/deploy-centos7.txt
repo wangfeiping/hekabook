@@ -152,3 +152,24 @@ geth=${GETH:-geth}
 # $geth --datadir data --networkid 31415926 --rpc --rpccorsdomain "*" --nodiscover console
 $geth --datadir data --networkid 31415926 --rpc --rpccorsdomain "*" --rpcaddr 0.0.0.0 --nodiscover console
 ```
+
+搭建私链详细说明参考
+http://www.codesec.net/view/467091.html
+
+### 集群部署
+
+查看网络是否在监听
+net.listening
+
+查看当前节点的信息
+console> admin.nodeInfo 
+
+查看当前连接的节点
+admin.peers
+
+vi $datadir/static-nodes.json
+```
+# enode 为其他geth 节点通过admin.nodeInfo 查询获取的值
+["enode://f9d09879fc84344e050210fd5d4666d529c280f00e329f91218334beb6118a75be0e27807f19c6e8c15af765652279a08245967f7c63e1fcfd288f644c9dd0fd@172.28.109.39:30303"]
+```
+

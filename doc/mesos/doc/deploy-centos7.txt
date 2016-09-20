@@ -1,0 +1,115 @@
+mesos 部署
+
+参考文档
+
+使用 Docker， 7 个命令部署一个 Mesos 集群
+https://segmentfault.com/a/1190000002531072
+Docker的save和export命令的区别
+https://www.linuxidc.com/Linux/2014-04/100631.htm
+使用Docker 部署Mesos集群
+https://github.com/sekka1/mesosphere-docker#multi-node-setup
+
+安装docker
+yum install docker-io
+
+启动docker服务：
+service docker start
+
+导出容器
+docker export <CONTAINER ID> > /home/export.tar
+
+导入容器
+cat /home/export.tar | sudo docker import - busybox-1-export:latest
+
+保存镜像
+docker save <IMAGE NAME> > /home/save.tar
+
+装载镜像
+docker load < /home/save.tar
+
+查看镜像
+docker images
+
+显示镜像的所有层(layer)
+docker images --tree
+
+层回滚
+docker tag <LAYER ID> <IMAGE NAME>
+
+运行镜像
+docker run
+
+启动容器
+docker start
+
+echo `date`-"hello mesos" >> /tmp/output.txt
+
+登入docker
+docker exec -it mesos_slave_1 /bin/bash
+
+Trouble Shooting ====================================
+1-----------------------
+garland/mesosphere-docker-mesos-master
+Exited (139)
+似乎是命令行参数${HOST_IP}没有正确转换，确认环境参数已设置并已生效，
+再次执行docker 启动命令即可正常执行。
+2-----------------------
+/etc/profile 修改配置后没有立即生效
+需要执行(注意不能加sudo )
+source /etc/profile 或 . /etc/profile
+3-----------------------
+执行docker 报错
+docker: Cannot connect to the Docker daemon. Is the docker daemon running on this host?.
+需要添加sudo 执行。
+4-----------------------
+Mesos 单节点集群，增加一个Slave 节点后，资源被正常统计但该节点状态始终显示Deactivated
+https://yeasy.gitbooks.io/docker_practice/content/advanced_network/bridge.html
+配置修改网桥docker0
+sudo yum install bridge-utils
+sudo service docker stop
+ip addr del 172.17.0.1/16 dev docker0
+ip addr replace 172.17.0.2/16 dev docker0
+ip link set dev docker0 down
+brctl addbr bridge0
+ip addr add 172.28.32.182/24 dev bridge0
+ip link set dev bridge0 up
+echo 'DOCKER_OPTS="-b=bridge0"' >> /etc/default/docker
+5-----------------------
+https://segmentfault.com/a/1190000002531072
+按照文档中介绍可以正常部署，然后在另一台虚拟主机中增加一个节点部署为mesos slave，
+但新增的mesos slave在mesos控制台上只能看到cpu和磁盘资源的增加但是slaves的状态始终是Deactivated；
+并且master控制台中认为slave与master在同一台主机ip下。
+在mesos master中进行测试：
+master宿主主机ip为172.28.109.240
+master docker ip为172.17.0.1/16
+slave宿主主机ip为172.28.110.57
+slave docker ip为172.17.0.2/16
+在master docker中只能ping通172.28.110.57，也可以ping通172.17.0.2
+但在master docker中通过端口连接只能联通172.28.110.57，无法连通172.17.0.2？
+解决办法：
+之所以能够ping通172.17.0.2，是因为两台机器各自有一个172.17.0.0/16的局域网，
+并各有一个ip为172.17.0.2的docker
+修改172.28.110.57的docker0
+vi /usr/lib/systemd/system/docker.service
+ExecStart=/bin/sh -c '/usr/bin/docker-current daemon \
+------------
+          --bip=172.18.42.1/16 \
+------------
+          --exec-opt native.cgroupdriver=systemd \
+
+systemctl daemon-reload
+systemctl stop docker
+systemctl start docker
+在172.28.109.240修改
+# route add -net 172.18.0.0/16 gw 172.28.110.57
+# centos 7
+ip route add 172.18.0.0/16 via 172.28.110.57
+在172.28.110.57修改
+# route add -net 172.17.0.0/16 gw 172.28.109.240
+ip route add 172.17.0.0/16 via 172.28.109.240
+查看路由表
+ip route list
+ip route show
+查看资料可能还有其他方式？
+通过传ip参数，设置slave宿主机ip，
+master通过宿主机ip和端口映射（5051？）访问slave？
