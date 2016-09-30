@@ -173,6 +173,7 @@ ip 为服务ip
 cd mesos-1.0.1
 nohup ./bin/mesos-master.sh --log_dir=/home/root/mesos/ --ip=172.28.32.23 --work_dir=/home/root/mesos --quorum=1 --zk=zk://172.28.32.180:2181/mesos >> ./mesos-master.log &
 nohup ./bin/mesos-agent.sh --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
+nohup ./bin/mesos-agent.sh --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
 
 ! /bin/bash
 IP=localhost:2181
@@ -192,7 +193,7 @@ CICD 持续集成
 ```
 wget http://mirrors.jenkins-ci.org/war-stable/latest/jenkins.war
 
-nohup java -jar jenkins.war --httpPort=8088 >> jenkins.l&og &
+nohup java -jar jenkins.war --httpPort=8088 >> jenkins.log &
 
 安装插件     Jenkins-> Manage Jenkins-> Manage Plugins-> Available
 Mesos Plugin
@@ -228,3 +229,81 @@ docker push 172.28.32.23/public/centos_jdk:1.8.0
 清理未运行的容器
 docker rm $(docker ps -a -f status=exited -q)
 
+部署marathon-lb 实现docker 容器的服务发现以及负载均衡.
+需要确保端口没有冲突，以保证marathon-lb 能够正常启动.
+docker pull docker.io/mesosphere/marathon-lb
+
+通过marathon 启动marathon-lb
+```
+{
+    "id": "marathon-lb",
+    "instances": 1,
+    "constraints": [["hostname", "UNIQUE"]],
+    "container": {
+        "type": "DOCKER",
+        "docker": {
+            "image": "docker.io/mesosphere/marathon-lb",
+            "privileged": true,
+            "network": "HOST"
+        }
+    },
+    "healthChecks": [
+        {
+            "protocol": "HTTP",
+            "path": "/_haproxy_health_check",
+            "gracePeriodSeconds": 3,
+            "intervalSeconds": 10,
+            "port": 9090,
+            "timeoutSeconds": 10,
+            "maxConsecutiveFailures": 3
+        }
+    ],
+    "args": ["sse", "-m","http://172.28.32.23:8080", "--group", "httptables.apis"]
+}
+
+curl -i -H 'Content-Type: application/json' 172.28.32.23:8080/v2/apps -d@marathon-lb/marathon-lb.json
+```
+
+登入marathon-lb 容器，发现如果和宿主机端口存在冲突，haproxy 服务会启动失败。
+```
+docker exec -it marathon-lb-container-id /bin/bash
+ps -ef | grep marathon-lb
+
+haproxy -p /tmp/haproxy.pid -f /marathon-lb/haproxy.cfg -D -sf 43
+
+查看haproxy 配置文件
+cat haproxy.cfg
+
+监控端口查询
+http://172.28.32.23:9090/_haproxy_getconfig
+```
+
+mesos 单机
+cd mesos-1.0.1
+nohup ./bin/mesos-master.sh --log_dir=/home/root/mesos/ --ip=172.28.32.23 --work_dir=/home/root/mesos >> ./mesos-master.log &
+nohup ./bin/mesos-agent.sh --containerizers=docker,mesos --master=172.28.32.23:5050 --work_dir=/home/root/mesos >> ./mesos-agent.log &
+cd marathon-1.3.0
+nohup ./bin/start --master 172.28.32.23:5050 --zk zk://172.28.32.180:2181/marathon >> ./marathon.log &
+
+mesos 集群部署：
+二进制发行版
+https://open.mesosphere.com/downloads/mesos/
+
+需要安装 libevent-devel
+yum install libevent-devel
+
+vi /etc/systemd/system/multi-user.target.wants/mesos-master.service 
+
+systemctl start mesos-master
+
+启动mesos-agent 时需要绑定ip agent 需要加上参数 --ip=***
+
+编译安装启动集群
+cd mesos-1.0.1
+nohup ./bin/mesos-master.sh --log_dir=/home/root/mesos/ --ip=172.28.32.23 --work_dir=/home/root/mesos --quorum=1 --zk=zk://172.28.32.180:2181/mesos >> ./mesos-master.log &
+nohup ./bin/mesos-agent.sh --ip=172.28.32.23 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
+nohup ./bin/mesos-agent.sh --ip=172.28.32.181 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
+nohup ./bin/mesos-agent.sh --ip=172.28.32.182 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
+nohup ./bin/mesos-agent.sh --ip=172.28.32.183 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
+nohup ./bin/mesos-agent.sh --ip=172.28.32.184 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
+nohup ./bin/mesos-agent.sh --ip=172.28.32.185 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
