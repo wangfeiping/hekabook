@@ -184,7 +184,8 @@ kill -QUIT $pid
 
 最好的方式当然还是通过 service 启动或重启 hekad。
 
-参考文档：https://github.com/mozilla-services/heka/wiki/Sample--etc-init.d-hekad-file
+参考文档：
+https://github.com/mozilla-services/heka/wiki/Sample--etc-init.d-hekad-file
 
 本项目中的 conf/etc/init.d/hekad 就是根据上面的参考创建的脚本文件，在系统文件路径 /etc/init.d/ 创建该脚本。
 并需要安装一个软件"daemon"，http://libslack.org/daemon/：

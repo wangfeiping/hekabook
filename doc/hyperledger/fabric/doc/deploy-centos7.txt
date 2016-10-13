@@ -154,6 +154,17 @@ deploy chaincode 时，每个peer 都会在自己所在服务器上单独启动�
 修改core.xml 没有实现
 
 
+http://hyperledger-fabric.readthedocs.io/en/latest/starter/fabric-starter-kit/
+```
+curl -o docker-compose.yml https://raw.githubusercontent.com/hyperledger/fabric/master/examples/sdk/node/docker-compose.yml
 
+curl -o Dockerfile https://raw.githubusercontent.com/hyperledger/fabric/master/examples/sdk/node/Dockerfile
+docker build -t hyperledger/fabric-starter-kit:latest .
 
+peer chaincode deploy -l java -p /root/gopath/src/github.com/hyperledger/fabric/core/chaincode/shim/java -c '{"Function":"init", "Args": []}'
+```
+
+fabric 自带rocksdb 数据库工具dbutility
+
+./dbutility -dbDir /var/hyperledger/production/
 

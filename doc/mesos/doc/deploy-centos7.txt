@@ -307,3 +307,148 @@ nohup ./bin/mesos-agent.sh --ip=172.28.32.182 --containerizers=docker,mesos --ma
 nohup ./bin/mesos-agent.sh --ip=172.28.32.183 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
 nohup ./bin/mesos-agent.sh --ip=172.28.32.184 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
 nohup ./bin/mesos-agent.sh --ip=172.28.32.185 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
+
+registrator /consul /etcd /confd 服务发现
+
+docker pull gliderlabs/registrator
+
+docker pull consul
+
+docker run -d -p 8500:8500 --name=consul consul agent -server
+
+docker run -d --restart=always \
+    --name=registrator \
+    --net=host \
+    --volume=/var/run/docker.sock:/tmp/docker.sock \
+    gliderlabs/registrator:latest \
+    -ip 172.28.32.181 \
+    consul://172.28.32.181:8500/
+
+curl http://172.28.32.181:8500/v1/catalog/services
+curl 172.28.32.181:8500/v1/catalog/service/httptables_api
+
+curl -XPUT \
+    172.28.32.23:8500/v1/agent/service/register \
+    -d '{
+        "ID": "simple_instance_1",
+        "Name":"simple",
+        "Port": 8000, 
+        "tags": ["tag"]
+    }'
+
+consul-template
+https://releases.hashicorp.com/consul-template/0.16.0/consul-template_0.16.0_linux_amd64.zip
+
+vi ctmpl.json
+```
+consul = "172.28.32.181:8500"
+
+template {
+  source = "./haproxy.ctmpl"
+  destination = "./haproxy.cfg"
+  command = "systemctl reload haproxy"
+}
+```
+
+vi /etc/haproxy/haproxy.ctmpl
+```
+global
+    log         127.0.0.1 local2
+  
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+  
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+  
+frontend  main *:80
+    acl url_static       path_beg       -i /static /images /javascript /stylesheets
+    acl url_static       path_end       -i .jpg .gif .png .css .js
+  
+    use_backend static          if url_static
+    default_backend             app
+  
+backend static
+    balance     roundrobin
+    server      static 127.0.0.1:4331 check
+  
+backend app
+    balance     roundrobin
+        {{range service "httptables_api"}}
+        server {{.Name}} {{.Address}}:{{.Port}}{{end}}
+```
+
+consul-template -config ./ctmpl.json > consul-template.out 2>&1 &
+
+向etcd 注册信息
+docker run -d --restart=always \
+    --name=registrator-etcd \
+    --net=host \
+    --volume=/var/run/docker.sock:/tmp/docker.sock \
+    gliderlabs/registrator:latest \
+    -ip 172.28.32.183 \
+    etcd://192.168.1.169:2379
+
+查看etcd
+http://192.168.1.169:2379/v2/keys/httptables_api
+
+下载confd
+wget https://github.com/kelseyhightower/confd/releases/download/v0.11.0/confd-0.11.0-linux-amd64
+
+cd confd/
+vi confd.toml
+```
+[template]
+src = "haproxy.cfg.tmpl"
+dest = "./haproxy.cfg"
+keys = [
+    "/httptables_api",
+]
+reload_cmd = "/etc/init.d/haproxy reload"
+```
+vi haproxy.cfg.tmpl
+```
+[myconfig]
+{{ with get "/httptables_api"}}
+ server {{base .Key}} {{.Value}} check
+{{end}}
+```
+
+./confd-0.11.0-linux-amd64 -verbose -interval 10 -confdir=./ -onetime -backend etcd -node 192.168.1.169:2379 -node 192.168.1.179:2379 -node 192.168.1.180:2379
+注意：
+-onetime 表示只执行一次即推出
+-confdir 配置的路径conf.d/ 中所有的.toml 文件都会被读取和处理，
+默认为/etc/confd/conf.d
+confd.toml 中src 会自动搜索templates/ 文件夹，
+默认为/etc/confd/templates
+配置-confdir=./ 之后需要创建./conf.d 和./templates 文件夹
+否则没有按预期处理生成配置文件，而且不报错！
+
+```
+curl -XPUT http://192.168.1.169:2379/v2/keys/app/servers/backstabbing_rosalind -d value="192.168.1.22:49156"  
+curl -XPUT http://192.168.1.169:2379/v2/keys/app/servers/cocky_morse -d value="192.168.1.22:49158"  
+curl -XPUT http://192.168.1.169:2379/v2/keys/app/servers/goofy_goldstine -d value="192.168.1.22:49160"  
+curl -XPUT http://192.168.1.169:2379/v2/keys/app/servers/prickly_blackwell -d value="192.168.1.22:49162"
+```
+
