@@ -28,21 +28,23 @@ NM_CONTROLLED=no
 yum install docker-io
 
 curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+# mv /home/vagrant/tools/docker-compose /usr/local/bin
 chmod +x /usr/local/bin/docker-compose
 
 yum install git
-
-http://hyperledger-fabric.readthedocs.io/en/latest/dev-setup/build/
-
-tar -xzvf /root/go1.6.2.linux-amd64.tar.gz
-
-tar -xzvf /root/jdk-8u101-linux-x64.tar.gz
 
 yum -y install gcc-c++
 
 yum install bzip2
 yum install unzip
 yum install wget
+
+http://hyperledger-fabric.readthedocs.io/en/latest/dev-setup/build/
+
+mkdir -p /home/vagrant/dev/gopath
+tar -xzvf ./go1.6.3.linux-amd64.tar.gz
+
+tar -xzvf ./jdk1.7.0_75.tar.gz
 
 vi /root/gradle-install.sh
 
@@ -64,21 +66,21 @@ hash -r ; sync
 gradle -v
 ```
 
-chmod +x /root/gradle-install.sh
-/root/gradle-install.sh
+chmod +x ./gradle-install.sh
+./gradle-install.sh
 
 vi /etc/profile
 
 ```
-export GOROOT=/root/go
-export GOPATH=/root/gopath
+export GOROOT=/home/vagrant/tools/go
+export GOPATH=/home/vagrant/dev/gopath
 export GOBIN=$GOROOT/bin
 export GOARCH=amd64
 export GOOS=linux
 
 export GRADLE_HOME=/opt/gradle/latest
 
-export JAVA_HOME=/apps/jdk1.8.0_101
+export JAVA_HOME=/home/vagrant/tools/jdk1.7.0_75
 set CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 
 export PATH=$PATH:$GOBIN:$GRADLE_HOME/bin:$JAVA_HOME/bin:/usr/local/bin:/usr/local/lib
@@ -90,11 +92,18 @@ yum install snappy-devel zlib-devel bzip2-devel
 git clone https://github.com/facebook/rocksdb.git
 cd rocksdb
 git checkout v4.1
+# Please, commit your changes or stash them before you can switch branches.
+# git config --global user.email "wangfeiping@outlook.com"
+# git config --global user.name "wangfeiping"
+# git stash
 PORTABLE=1 make shared_lib
 INSTALL_PATH=/usr/local make install-shared
 
+mkdir -p $GOPATH/src/github.com/hyperledger
+cd mkdir -p $GOPATH/src/github.com/hyperledger
 git clone https://github.com/hyperledger/fabric.git
-
+cd fabric
+git checkout v0.6
 
 trouble shooting===================================
 
@@ -112,7 +121,7 @@ docker-io
 vi /etc/sysconfig/docker
 
 # OPTIONS='--selinux-enabled --log-driver=journald'
-OPTIONS='--log-driver=journald'
+OPTIONS='--log-driver=journald -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock'
 ```
 
 deploy chaincode 成功之后无法调用：
@@ -168,3 +177,223 @@ fabric 自带rocksdb 数据库工具dbutility
 
 ./dbutility -dbDir /var/hyperledger/production/
 
+docker pull yeasy/hyperledger:0.6-dp
+docker tag yeasy/hyperledger:0.6-dp hyperledger/fabric-baseimage:latest
+docker pull yeasy/hyperledger-peer:0.6-dp
+
+docker save yeasy/hyperledger-peer:0.6-dp > ./yeasy_hyperledger-peer_0.6-dp.tar
+docker save yeasy/hyperledger:0.6-dp > ./yeasy_hyperledger_0.6-dp.tar
+docker load < ./yeasy_hyperledger-peer_0.6-dp.tar
+docker load < ./yeasy_hyperledger_0.6-dp.tar
+
+
+docker run --name=membersrvc \
+    --restart=unless-stopped \
+    -it \
+    -p 7054:7054 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e CORE_PEER_ID=vp0 \
+    -e CORE_PEER_ADDRESSAUTODETECT=true \
+    -e CORE_NOOPS_BLOCK_TIMEOUT=10 \
+    yeasy/hyperledger-peer:0.6-dp membersrvc
+
+docker run  -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
+    -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
+    --name=vp0 \
+    --restart=unless-stopped \
+    -it \
+    -p 7050:7050 \
+    -p 7051:7051 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e CORE_PEER_ID=vp0 \
+    -e CORE_PEER_ADDRESSAUTODETECT=true \
+    -e CORE_NOOPS_BLOCK_TIMEOUT=10 \
+    yeasy/hyperledger-peer:0.6-dp peer node start
+    
+docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
+    -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
+    --name=vptest \
+    --restart=unless-stopped \
+    -it \
+    -p 7050:7050 \
+    -p 7051:7051 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e CORE_PEER_ID=vp0 \
+    -e CORE_PEER_ADDRESSAUTODETECT=true \
+    -e CORE_NOOPS_BLOCK_TIMEOUT=10 \
+    yeasy/hyperledger-peer:0.6-dp peer node start
+
+docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
+    -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
+    --name=node_vp0 \
+    -e CORE_PEER_ID=node_vp0 \
+    -e CORE_PBFT_GENERAL_N=4 \
+    --net="host" \
+    --restart=unless-stopped \
+    -it \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e CORE_LOGGING_LEVEL=debug \
+    -e CORE_PEER_ADDRESSAUTODETECT=false \
+    -e CORE_PEER_NETWORKID=dev \
+    -e CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft \
+    -e CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s \
+    yeasy/hyperledger-peer:0.6-dp peer node start
+    
+docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
+    -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
+    --name=node_vp1 \
+    -e CORE_PEER_ID=node_vp1 \
+    -e CORE_PBFT_GENERAL_N=4 \
+    --net="host" \
+    --restart=unless-stopped \
+    -e CORE_LOGGING_LEVEL=debug \
+    -e CORE_PEER_ADDRESSAUTODETECT=false \
+    -e CORE_PEER_NETWORKID=dev \
+    -e CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft \
+    -e CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s \
+    -e CORE_PEER_DISCOVERY_ROOTNODE=172.28.32.133:7051 \
+    yeasy/hyperledger-peer:0.6-dp peer node start
+
+docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
+    -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
+    -d --name=node_vp2 \
+    -e CORE_PEER_ID=node_vp2 \
+    -e CORE_PBFT_GENERAL_N=4 \
+    --net="host" \
+    --restart=unless-stopped \
+    -e CORE_LOGGING_LEVEL=debug \
+    -e CORE_PEER_ADDRESSAUTODETECT=false \
+    -e CORE_PEER_NETWORKID=dev \
+    -e CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft \
+    -e CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s \
+    -e CORE_PEER_DISCOVERY_ROOTNODE=172.28.32.133:7051 \
+    yeasy/hyperledger-peer:0.6-dp peer node start
+    
+docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
+    -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
+    --name=node_vp3 \
+    -e CORE_PEER_ID=node_vp3 \
+    -e CORE_PBFT_GENERAL_N=4 \
+    --net="host" \
+    --restart=unless-stopped \
+    --rm -it \
+    -e CORE_LOGGING_LEVEL=debug \
+    -e CORE_PEER_ADDRESSAUTODETECT=false \
+    -e CORE_PEER_NETWORKID=dev \
+    -e CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft \
+    -e CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s \
+    -e CORE_PEER_DISCOVERY_ROOTNODE=172.28.32.133:7051 \
+    yeasy/hyperledger-peer:0.6-dp peer node start
+
+core.yaml
+
+membersrvc
+pki:
+        eca:
+            paddr: 172.28.32.136:7054
+        tca:
+            paddr: 172.28.32.136:7054
+        tlsca:
+            paddr: 172.28.32.136:7054
+security:
+        enabled: true
+        enrollID: vp
+        enrollSecret: f3489fy98ghf
+        privacy: true
+peer:
+    # The Address this Peer will listen on
+    listenAddress: 172.28.32.137:7051
+    # The Address this Peer will bind to for providing services
+    address: 172.28.32.137:7051
+
+enrollID 与enrollSecret 需
+在fabric/membersrvc/membersrvc.yaml 文件中查找存在的对应值，
+并且每个vp 不能相同
+
+vp: 4 f3489fy98ghf
+
+                test_vp0: 4 MwYpmSRjupbT
+                test_vp1: 4 5wgHK9qqYaPy
+                test_vp2: 4 vQelbRvja7cJ
+                test_vp3: 4 9LKqKH5peurL
+                test_vp4: 4 Pqh90CEW5juZ
+                test_vp5: 4 FfdvDkAdY81P
+                test_vp6: 4 QiXJgHyV4t7A
+                test_vp7: 4 twoKZouEyLyB
+                test_vp8: 4 BxP7QNh778gI
+                test_vp9: 4 wu3F1EwJWHvQ
+                test_vp10: 4 hNeS24SKJtMD
+                test_vp11: 4 ezTbMAUccdLy
+                test_vp12: 4 MSDr2juOIooZ
+                test_vp13: 4 DfPHFoFKj2jl
+                test_vp14: 4 NyxEfwjy7vPL
+                test_vp15: 4 sTHJYI3ndQH+
+                test_vp16: 4 EePE5sgyIhos
+                test_vp17: 4 2uram7e1EgF+
+                test_vp18: 4 75457cHKhNM7
+                test_vp19: 4 eO6qRKBUMgSo
+                test_vp20: 4 ZZ4W81TbZo25
+                test_vp21: 4 XHnsQcDUPHF9
+                test_vp22: 4 8wCLDcVaK4ex
+                test_vp23: 4 qfXNCFie3kIY
+                test_vp24: 4 72eCtIbLP7c5
+
+
+listenAddress 与address 
+
+注册人员
+curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+  "enrollId": "jim",
+  "enrollSecret": "6avZQLwcUe9b"
+}
+' 'http://172.28.32.137:7050/registrar'
+
+curl -X POST -d '{
+   "jsonrpc": "2.0",
+   "method": "deploy",
+   "params": {
+     "type": 1,
+     "chaincodeID":{
+       "path":"github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example01"
+     },
+     "ctorMsg": {
+         "args":["init", "a", "100", "b", "200"]
+     },
+     "secureContext": "jim"
+   },
+   "ID": 5  
+}' 'http://172.28.32.137:7050/chaincode/'
+
+curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+  "jsonrpc": "2.0",
+  "method": "deploy",
+  "params": {
+    "type": 1,
+    "chaincodeID":{
+        "path":"github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02"
+    },
+    "ctorMsg": {
+        "function":"init",
+        "args":["a", "1000", "b", "2000"]
+    },
+    "secureContext": "jim"
+  },
+  "id": 1
+}
+}' 'http://172.28.32.137:7050/chaincode/'
+
+curl -X POST -d '{
+   "jsonrpc": "2.0",
+   "method": "query",
+   "params": {
+     "type": 4,     
+     "chaincodeID":{
+       "name":"fcf113ab0c9779b669a81ff1c04d3e866df17fea2c46558554e885d0812e9a686707099ea73ecd6f0029181c425ace8c344015bc40811cd8a205e20b6d2c3399"
+     },
+     "ctorMsg": {
+         "args":["query", "a"]
+     },
+     "secureContext": "jim"
+   },
+   "ID": 5  
+}' 'http://172.28.32.134:7050/chaincode/'

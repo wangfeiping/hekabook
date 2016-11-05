@@ -262,6 +262,8 @@ docker pull docker.io/mesosphere/marathon-lb
 }
 
 curl -i -H 'Content-Type: application/json' 172.28.32.23:8080/v2/apps -d@marathon-lb/marathon-lb.json
+
+docker run -d --name httptables.db.lb --privileged -e PORTS=9090 --net=host docker.io/mesosphere/marathon-lb sse -m http://172.28.32.23:8080 --group httptables.db
 ```
 
 登入marathon-lb 容器，发现如果和宿主机端口存在冲突，haproxy 服务会启动失败。
@@ -352,51 +354,9 @@ template {
 
 vi /etc/haproxy/haproxy.ctmpl
 ```
-global
-    log         127.0.0.1 local2
-  
-    chroot      /var/lib/haproxy
-    pidfile     /var/run/haproxy.pid
-    maxconn     4000
-    user        haproxy
-    group       haproxy
-    daemon
-  
-    # turn on stats unix socket
-    stats socket /var/lib/haproxy/stats
-defaults
-    mode                    http
-    log                     global
-    option                  httplog
-    option                  dontlognull
-    option http-server-close
-    option forwardfor       except 127.0.0.0/8
-    option                  redispatch
-    retries                 3
-    timeout http-request    10s
-    timeout queue           1m
-    timeout connect         10s
-    timeout client          1m
-    timeout server          1m
-    timeout http-keep-alive 10s
-    timeout check           10s
-    maxconn                 3000
-  
-frontend  main *:80
-    acl url_static       path_beg       -i /static /images /javascript /stylesheets
-    acl url_static       path_end       -i .jpg .gif .png .css .js
-  
-    use_backend static          if url_static
-    default_backend             app
-  
-backend static
-    balance     roundrobin
-    server      static 127.0.0.1:4331 check
-  
-backend app
-    balance     roundrobin
-        {{range service "httptables_api"}}
-        server {{.Name}} {{.Address}}:{{.Port}}{{end}}
+[myconfig]
+    {{range service "httptables_api"}}
+    server {{.Name}} {{.Address}}:{{.Port}}{{end}}
 ```
 
 consul-template -config ./ctmpl.json > consul-template.out 2>&1 &
@@ -430,9 +390,9 @@ reload_cmd = "/etc/init.d/haproxy reload"
 vi haproxy.cfg.tmpl
 ```
 [myconfig]
-{{ with get "/httptables_api"}}
- server {{base .Key}} {{.Value}} check
-{{end}}
+    {{ with get "/httptables_api"}}
+    server {{base .Key}} {{.Value}} check
+    {{end}}
 ```
 
 ./confd-0.11.0-linux-amd64 -verbose -interval 10 -confdir=./ -onetime -backend etcd -node 192.168.1.169:2379 -node 192.168.1.179:2379 -node 192.168.1.180:2379
