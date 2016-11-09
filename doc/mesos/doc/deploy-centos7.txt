@@ -412,3 +412,13 @@ curl -XPUT http://192.168.1.169:2379/v2/keys/app/servers/goofy_goldstine -d valu
 curl -XPUT http://192.168.1.169:2379/v2/keys/app/servers/prickly_blackwell -d value="192.168.1.22:49162"
 ```
 
+mesos 集群开始没有任何问题，可以正常启动运行docker；
+后来突然发现无法正常启动docker 服务，情况如下，原因仍未找到，但需要找到原因，
+可能会影响docker 生产上线服务的正常运行：
+一、测试发现docker 能够正常启动，但是健康检查始终不能通过，
+造成依赖其服务的docker 无法正常启动，并且一段时间后由于其没有通过健康检查所以被不断重启；
+二、进一步测试发现，mesos 管理平台中的Agents 自动添加的记录host name 除非在本机否则均无法ping 通，
+并且机器中输入hostname 显示的主机名与之前的主机名不一致；
+三、重启mesos agent ，如果重启命令中不带--ip 则主机名变为正常主机拥有的hostname。
+mesos 管理平台更新了agent 的主机名，并且功能恢复正常。
+

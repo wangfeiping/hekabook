@@ -177,6 +177,12 @@ fabric 自带rocksdb 数据库工具dbutility
 
 ./dbutility -dbDir /var/hyperledger/production/
 
+### docker 部署hyperledger fabric
+
+参考：
+
+https://github.com/yeasy/docker-hyperledger-peer
+
 docker pull yeasy/hyperledger:0.6-dp
 docker tag yeasy/hyperledger:0.6-dp hyperledger/fabric-baseimage:latest
 docker pull yeasy/hyperledger-peer:0.6-dp
@@ -186,7 +192,8 @@ docker save yeasy/hyperledger:0.6-dp > ./yeasy_hyperledger_0.6-dp.tar
 docker load < ./yeasy_hyperledger-peer_0.6-dp.tar
 docker load < ./yeasy_hyperledger_0.6-dp.tar
 
-
+### membersrvc
+```
 docker run --name=membersrvc \
     --restart=unless-stopped \
     -it \
@@ -196,20 +203,10 @@ docker run --name=membersrvc \
     -e CORE_PEER_ADDRESSAUTODETECT=true \
     -e CORE_NOOPS_BLOCK_TIMEOUT=10 \
     yeasy/hyperledger-peer:0.6-dp membersrvc
+```
 
-docker run  -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
-    -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
-    --name=vp0 \
-    --restart=unless-stopped \
-    -it \
-    -p 7050:7050 \
-    -p 7051:7051 \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -e CORE_PEER_ID=vp0 \
-    -e CORE_PEER_ADDRESSAUTODETECT=true \
-    -e CORE_NOOPS_BLOCK_TIMEOUT=10 \
-    yeasy/hyperledger-peer:0.6-dp peer node start
-    
+### 单点vp
+```
 docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
     -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
     --name=vptest \
@@ -222,7 +219,10 @@ docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/
     -e CORE_PEER_ADDRESSAUTODETECT=true \
     -e CORE_NOOPS_BLOCK_TIMEOUT=10 \
     yeasy/hyperledger-peer:0.6-dp peer node start
+```
 
+### 多点vp
+```
 docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
     -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
     --name=node_vp0 \
@@ -246,6 +246,7 @@ docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/
     -e CORE_PBFT_GENERAL_N=4 \
     --net="host" \
     --restart=unless-stopped \
+    -it --rm \
     -e CORE_LOGGING_LEVEL=debug \
     -e CORE_PEER_ADDRESSAUTODETECT=false \
     -e CORE_PEER_NETWORKID=dev \
@@ -256,11 +257,12 @@ docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/
 
 docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/peer/core.yaml \
     -v /home/vagrant/dev/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go:/go/src/github.com/hyperledger/fabric/examples/chaincode/go/ \
-    -d --name=node_vp2 \
+    --name=node_vp2 \
     -e CORE_PEER_ID=node_vp2 \
     -e CORE_PBFT_GENERAL_N=4 \
     --net="host" \
     --restart=unless-stopped \
+    -it --rm \
     -e CORE_LOGGING_LEVEL=debug \
     -e CORE_PEER_ADDRESSAUTODETECT=false \
     -e CORE_PEER_NETWORKID=dev \
@@ -284,7 +286,10 @@ docker run -v /home/vagrant/dev/core.yaml:/go/src/github.com/hyperledger/fabric/
     -e CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s \
     -e CORE_PEER_DISCOVERY_ROOTNODE=172.28.32.133:7051 \
     yeasy/hyperledger-peer:0.6-dp peer node start
+```
 
+### 配置
+```
 core.yaml
 
 membersrvc
@@ -339,8 +344,11 @@ vp: 4 f3489fy98ghf
                 test_vp24: 4 72eCtIbLP7c5
 
 
-listenAddress 与address 
+listenAddress 与address 需修改为可访问的vp ip
+```
 
+### 接口测试
+```
 注册人员
 curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
   "enrollId": "jim",
@@ -397,3 +405,4 @@ curl -X POST -d '{
    },
    "ID": 5  
 }' 'http://172.28.32.134:7050/chaincode/'
+```
