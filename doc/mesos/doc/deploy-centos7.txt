@@ -172,7 +172,7 @@ ip 为服务ip
 ```
 cd mesos-1.0.1
 nohup ./bin/mesos-master.sh --log_dir=/home/root/mesos/ --ip=172.28.32.23 --work_dir=/home/root/mesos --quorum=1 --zk=zk://172.28.32.180:2181/mesos >> ./mesos-master.log &
-nohup ./bin/mesos-agent.sh --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
+nohup ./bin/mesos-agent.sh --containerizers=docker,mesos --ip=172.28.32.180 --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
 nohup ./bin/mesos-agent.sh --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/root/mesos >> ./mesos-agent.log &
 
 ! /bin/bash

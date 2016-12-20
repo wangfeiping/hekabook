@@ -84,6 +84,8 @@ AMQP的原始用途只是为金融界提供一个可以彼此协作的消息协�
 
 [AMQP和RabbitMQ入门](http://www.infoq.com/cn/articles/AMQP-RabbitMQ "AMQP和RabbitMQ入门")
 
+[RabbitMQ从入门到精通](http://blog.csdn.net/column/details/rabbitmq.html "RabbitMQ从入门到精通")
+
 [RabbitMQ, ZeroMQ, Kafka](http://www.zhihu.com/question/22480085 "RabbitMQ, ZeroMQ, Kafka")
 
 [RabbitMQ和Kafka](http://my.oschina.net/u/236698/blog/501834?utm_source=tuicool&utm_medium=referral "RabbitMQ和Kafka")

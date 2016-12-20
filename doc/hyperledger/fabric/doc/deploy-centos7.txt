@@ -404,5 +404,5 @@ curl -X POST -d '{
      "secureContext": "jim"
    },
    "ID": 5  
-}' 'http://172.28.32.134:7050/chaincode/'
+}' 'http://127.0.0.1:7070/chaincode/'
 ```
