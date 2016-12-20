@@ -3,6 +3,10 @@
 Hekabook 开源学习手册：  
 源码研究，配置管理，插件开发，发散式学习！
 
+### Github Pages 地址
+
+* [http://wangfeiping.github.io/hekabook/](http://wangfeiping.github.io/hekabook/)
+
 ### 项目地址
 
 Hekabook 项目地址
