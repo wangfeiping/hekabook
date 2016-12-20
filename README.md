@@ -7,18 +7,18 @@ Hekabook 开源学习手册：
 
 Hekabook 项目地址
 
-* https://github.com/wangfeiping/hekabook
-* https://coding.net/u/wangfeiping/p/hekabook/git
+* [https://github.com/wangfeiping/hekabook](https://github.com/wangfeiping/hekabook)
+* [https://coding.net/u/wangfeiping/p/hekabook/git](https://coding.net/u/wangfeiping/p/hekabook/git)
 
 Heka 项目地址
 
-* https://github.com/mozilla-services/heka
+* [https://github.com/mozilla-services/heka](https://github.com/mozilla-services/heka)
 
-#### [首页](./README.md "首页")  
+#### [首页](./ "首页")  
 
-#### [快速入门](doc/getting_started.md "快速入门")  
+#### [快速入门](doc/getting_started "快速入门")  
 
-#### [插件与配置](doc/plugins.md "插件与配置")  
+#### [插件与配置](doc/plugins "插件与配置")  
 
 #### 相关工具  
 
@@ -36,4 +36,4 @@ Heka 项目地址
 
 #### 尝试：如何设计一个每秒处理10万条的日志服务？  
 
-#### [Git 工作流基本操作](doc/git_workflow.md "Git 工作流基本操作")  
+#### [Git 工作流基本操作](doc/git_workflow "Git 工作流基本操作")  
