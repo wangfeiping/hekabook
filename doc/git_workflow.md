@@ -20,7 +20,7 @@ Heka 项目地址
 
 > cd workspaces/code/github/hekabook/
 
-签入并提交代码
+提交并签入已修改内容
 
 > git commit -a -m '更新文档'  
 > git push --set-upstream origin develop  
@@ -29,13 +29,31 @@ Heka 项目地址
 
 > git checkout master  
 
-创建临时分支
+创建临时的hotfix 分支
 
 > git checkout -b hotfix  
 
 修改......
 
+提交hotfix 分支中的修改（不需签入）
+
 > git commit -a -m '更新文档，增加Git 工作流基本操作文档'  
+
+再次签回主分支
+
+> git checkout master  
+
+在主分支中合并hotfix 分支中的修改
+
+> git merge hotfix  
+
+删除临时的hotfix 分支
+
+> git branch -d hotfix  
+
+提交并签入主分支
+
+> git push --set-upstream origin master  
 
 ### [首页](../README.md "首页")  
 ### [快速入门](./getting_started.md "快速入门")  
