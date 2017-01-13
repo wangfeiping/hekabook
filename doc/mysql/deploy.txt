@@ -1,0 +1,18 @@
+https://hub.docker.com/r/_/mysql/
+
+docker run --name dev-mysql --net=bridge -p 33306:3306 -e MYSQL_ROOT_PASSWORD=12345 -d mysql:latest
+
+docker exec -it dev-mysql /bin/bash
+
+cat ./dev-mysql.tar | sudo docker import - 172.28.32.23:8808/public/dev-mysql:0.0.1
+
+docker tag 28cc86ff384f 172.28.32.23:8808/public/dev-mysql:0.0.1
+docker push 172.28.32.23:8808/public/dev-mysql:0.0.1
+
+docker run -d --name dev-mysql --net=bridge -p 33306:3306 -e MYSQL_ROOT_PASSWORD=12345 172.28.32.23:8808/public/dev-mysql:0.0.1
+
+mysql -h 172.28.32.181 -P 33306 -u root -p
+
+mysql -h 172.28.32.181 -P 33306 -u root -p12345 < ./mysql-init.sql
+
+docker run -d --name apis --net=bridge -p 31999:9000 172.28.32.23:8808/develop/httptables_api:1.0.0

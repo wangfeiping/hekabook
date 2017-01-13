@@ -292,6 +292,8 @@ mesos 集群部署：
 https://open.mesosphere.com/downloads/mesos/
 
 需要安装 libevent-devel
+yum install subversion
+yum install cyrus-sasl-md5
 yum install libevent-devel
 
 vi /etc/systemd/system/multi-user.target.wants/mesos-master.service 
@@ -299,6 +301,14 @@ vi /etc/systemd/system/multi-user.target.wants/mesos-master.service
 systemctl start mesos-master
 
 启动mesos-agent 时需要绑定ip agent 需要加上参数 --ip=***
+nohup mesos agent --ip=172.28.32.130 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/vagrant/mesos >> /home/vagrant/mesos-agent.log &
+nohup mesos agent --ip=172.28.32.131 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/vagrant/mesos >> /home/vagrant/mesos-agent.log &
+nohup mesos agent --ip=172.28.32.132 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/vagrant/mesos >> /home/vagrant/mesos-agent.log &
+nohup mesos agent --ip=172.28.32.133 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/vagrant/mesos >> /home/vagrant/mesos-agent.log &
+nohup mesos agent --ip=172.28.32.134 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/vagrant/mesos >> /home/vagrant/mesos-agent.log &
+nohup mesos agent --ip=172.28.32.135 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/vagrant/mesos >> /home/vagrant/mesos-agent.log &
+nohup mesos agent --ip=172.28.32.136 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/vagrant/mesos >> /home/vagrant/mesos-agent.log &
+nohup mesos agent --ip=172.28.32.137 --containerizers=docker,mesos --master=zk://172.28.32.180:2181/mesos --work_dir=/home/vagrant/mesos >> /home/vagrant/mesos-agent.log &
 
 编译安装启动集群
 cd mesos-1.0.1
